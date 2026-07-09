@@ -1,0 +1,292 @@
+@import url('https://fonts.googleapis.com/css2?family=Dancing%20Script:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+/*Elementos*/
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #3E5E4C;
+    background: linear-gradient(0deg, rgba(62, 94, 76, 1) 0%, rgba(166, 180, 138, 1) 50%, rgba(216, 226, 200, 1) 100%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    
+    padding: 20px;
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    gap: 10px;
+}
+
+h1 {
+    font-family: 'Dancing Script', sans-serif;
+    font-size: 40px;
+}
+
+table {
+    border-collapse: collapse;        
+    min-width: 150px;
+    max-width: 100%;
+    max-height: 90%; 
+    box-shadow: 0 0 10px #8B6B4F;
+    font-family: Calibri;
+    font-size: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+table th {
+    padding: 5px 10px;
+    background-color: #7FA6A1;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+table td {
+    padding: 5px 10px;
+    background-color: #CFE3E0;
+    font-size: 20px;
+    text-align: center;
+}
+
+table button {
+    border-radius: 10px;
+    border-style: solid;   
+    border-width: 1px;
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+    font-family: Calibri;
+}
+
+button:hover {
+    background-color: rgb(0, 0, 0, 0.1);
+}
+
+/*Clases*/
+
+.contenedorTitulo {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
+    
+    width: auto;
+
+    padding: 10px;
+
+    box-shadow: 0 0 10px #8B6B4F;
+
+    background-color: white;
+    
+    border-radius: 10px;
+
+}
+
+.contenedorUI {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 10px;
+
+    padding: 10px;
+
+    background-color: rgb(0, 0, 0, 0);
+    
+    border-radius: 10px;
+
+}
+
+.contenedorSeccion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 20px;
+    
+    width: auto;
+    height: auto;
+    max-width: 600px;
+    max-height: 700px;
+
+    padding: 20px;
+
+    box-shadow: 0 0 10px #8B6B4F;
+
+    background-color: white;
+    
+    border-radius: 10px;
+
+}
+
+.contenedorTablas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 10px;
+    overflow-y: auto;
+    
+    width: auto;
+    height: auto;
+    max-width: 600px;
+    max-height: 700px;
+
+    background-color: rgb(0, 0, 0, 0);
+    
+    border-radius: 10px;
+
+}
+
+.contenedorMenu {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 10px;
+
+    width: auto;
+
+    background-color: rgb(0, 0, 0, 0);
+    
+    border-radius: 10px;
+
+    text-align: center;
+    font-family: Calibri;
+
+}
+
+.contenedorMenu button {
+    border-radius: 10px;
+    border-style: solid;   
+    border-width: 1px;
+
+    width: 30px;
+    height: 30px;
+
+}
+
+.contenedorMenu #info {
+    border-radius: 50px;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.oculto {
+    display: none;
+}
+
+/*IDs*/
+
+#logo {
+    max-width: 70px;
+    max-height: 70px;
+}
+
+#btnAgregar {
+    border-radius: 10px;
+    border-style: solid;   
+    border-width: 1px;
+    padding: 10px;
+    font-family: Calibri;
+    font-size: 20px;
+    text-align: center;
+}
+
+#Gasto {
+    background-color: rgba(255, 0, 0, 0.2);
+}
+
+#Ganancia {
+    background-color: rgba(0, 255, 0, 0.2);
+}
+
+#cantidad {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-evenly;
+    gap: 10px;
+    
+    padding: 5px 10px;
+    background-color: #CFE3E0;
+    text-align: center;
+}
+
+#inputAgregar {
+    padding: 5px;
+    height: 30px;
+    border-radius: 5px;
+}
+
+#movimientos {
+    max-height: 40%;
+
+}
+
+/* Animaciones */
+
+.animacion1 {
+    animation-duration: 3s;
+    animation-name: Aparezco;
+    animation-fill-mode: forwards;
+}
+
+@keyframes Aparezco {
+    from {
+        margin-top: -2%;
+        opacity: 0;
+    } to {
+        margin-top: 0%;
+        opacity: 1;
+    }
+}
+
+.animacion2 {
+    animation-duration: 3s;
+    animation-name: AparezcoPorElCostado;
+    animation-fill-mode: forwards;
+}
+
+@keyframes AparezcoPorElCostado {
+    from {
+        margin-left: -10%;
+        opacity: 0;
+    } to {
+        margin-left: 0%;
+        opacity: 1;
+    }
+}
+
+.animacion3 {
+    animation-duration: 3s;
+    animation-name: AhoraPorElOtro;
+    animation-fill-mode: forwards;
+}
+
+@keyframes AhoraPorElOtro {
+    from {
+        margin-right: -10%;
+        opacity: 0;
+    } to {
+        margin-right: 0%;
+        opacity: 1;
+    }
+}

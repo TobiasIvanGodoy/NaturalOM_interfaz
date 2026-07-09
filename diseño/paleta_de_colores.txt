@@ -1,0 +1,19 @@
+verde bosque: #3E5E4C
+
+verde oliva claro: #A6B48A
+
+verde menta suave: #D8E2C8
+
+marrón tierra: #8B6B4F
+
+beige cálido: #E8D9B8
+
+crema claro: #F5EEDC
+
+gris montaña: #C2B8A3
+
+azul río: #7FA6A1
+
+azul cielo pálido: #CFE3E0
+
+blanco: #FFFFFF
