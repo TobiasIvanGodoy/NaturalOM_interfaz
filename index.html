@@ -4,22 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> Natural OM </title>
+    <link rel="icon" type="image/jpg" href="diseño/logo_sin_redes.jpg">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="sombra oculto"></div>
     <div id="superior" class="contenedorHUD animacion1">
         <div id="brand">
             <img src="diseño/logo_sin_redes.jpg" id="logo"></img>
         </div>
         <div id="balance">
             <p id="saldo">$1.500.000</p> <!-- Aca despues voy a implementar que se muestre el balance de la cuenta -->
-            <button>
-                <p>▼</p>
-            </button>
         </div>
     </div>
     <div id="inferior" class="contenedorHUD animacion1">
-
+        <button id="btnProducto">
+            <p>Agregar producto</p>
+        </button>
+        <button id="btnMovimiento">
+            <p>Agregar movimiento</p>
+        </button>
     </div>
     <script src="script.js"></script>
 </body>
