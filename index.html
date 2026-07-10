@@ -7,162 +7,19 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="contenedorTitulo animacion1">
-        <img src="diseño/logo_sin_redes.jpg" id="logo"></img>
-        <h1>Natural OM</h1>
+    <div id="superior" class="contenedorHUD animacion1">
+        <div id="brand">
+            <img src="diseño/logo_sin_redes.jpg" id="logo"></img>
+        </div>
+        <div id="balance">
+            <p id="saldo">$1.500.000</p> <!-- Aca despues voy a implementar que se muestre el balance de la cuenta -->
+            <button>
+                <p>▼</p>
+            </button>
+        </div>
+    </div>
+    <div id="inferior" class="contenedorHUD animacion1">
 
     </div>
-    <div class="contenedorUI">  
-        <div class="contenedorSeccion animacion2">
-            <div class="contenedorTablas ">
-                <table>
-                    <tr>
-                        <th>
-                            <p>Producto</p>
-                        </th>
-                        <th>
-                            <p>Cantidad</p>
-                        </th>
-                        <th>
-                            <p>Precio</p>
-                        </th>
-                        <th>
-                            <p>Distribuidor</p>
-                        </th>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>Yerba</p>
-                        </td>
-                        <td id="cantidad">
-                            <button>
-                                <p> - </p>
-                            </button>
-                            <p>3</p>
-                            <button>
-                                <p> + </p>
-                            </button>
-                        </td>
-                        <td>
-                            <p>2500</p>
-                        </td>
-                        <td>
-                            <p>YerbaSA</p>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <button id="btnAgregar">
-                <p> Agregar Producto </p>
-            </button>
-        </div>
-        <div class="contenedorSeccion animacion3">
-            <div class="contenedorTablas" id="movimientos">
-                <table>
-                    <tr>
-                        <th>
-                            <p>Fecha</p>
-                        </th>
-                        <th>
-                            <p>Mensaje</p>
-                        </th>
-                        <th>
-                            <p>Monto</p>
-                        </th>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>10-01-2025</p>
-                        </td>
-                        <td>
-                            <p>Compre Bolsas</p>
-                        </td>
-                        <td id="Gasto">
-                            <p>-2000</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>10-01-2025</p>
-                        </td>
-                        <td>
-                            <p>Vendí una yerba</p>
-                        </td>
-                        <td id="Ganancia">
-                            <p>2500</p>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <button id="btnAgregar">
-            <p> Agregar Movimiento </p>
-            </button>
-            <div class="contenedorTitulo">
-                    <h1>Aca va a ir el balance</h1>
-            </div>
-            <div class="contenedorMenu">
-                <button id="sumBalance"></button>
-                <p>Agregar balance postivo automaticamente</p>
-                <button id="info">
-                    <p>!</p>
-                </button>
-            </div>
-        </div>
-    </div>
-    <table class="oculto">
-        <tr>
-            <td>
-                <input
-                id="inputAgregar"
-                type="text"
-                placeholder="nombre del producto...">
-            </td>
-            <td>
-                <input
-                id="inputAgregar"
-                type="number"
-                placeholder="cantidad...">
-            </td>
-            <td>
-                <input 
-                id="inputAgregar"
-                type="number"
-                placeholder="precio...">
-            </td>
-            <td>
-                <input 
-                id="inputAgregar"
-                type="text"
-                placeholder="distribuidor...">
-            </td>
-            <td>
-                <button>
-                    <p>✓</p>
-                </button>
-            </td>
-        </tr>
-    </table>
-    <table class="oculto">
-        <tr>
-            <td>
-                <input
-                id="inputAgregar"
-                type="text"
-                placeholder="mensaje...">
-            </td>
-            <td>
-                <input 
-                id="inputAgregar"
-                type="number"
-                placeholder="monto...">
-            </td>
-            <td>
-                <button>
-                    <p>✓</p>
-                </button>
-            </td>
-        </tr>
-    </table>
-    
     <script src="script.js"></script>
 </body>
