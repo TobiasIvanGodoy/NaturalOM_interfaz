@@ -8,13 +8,55 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="sombra oculto"></div>
-    <div id="superior" class="contenedorHUD animacion1">
-        <div id="brand">
-            <img src="diseño/logo_sin_redes.jpg" id="logo"></img>
+    <div class="sombra">
+        <div class="contenedor">
+            <div class="campo">
+                <label for="producto">Producto</label>
+                <input
+                    type="text"
+                    id="producto"
+                    placeholder="Ingrese nombre del producto">
+            </div>
+            <div class="campo">
+                <label for="precio">Precio</label>
+                <input
+                    type="number"
+                    id="precio"
+                    placeholder="Ingrese el precio producto">
+            </div>
+            <div class="campo">
+                <label for="cantidad">Cantidad</label>
+                <input
+                    type="number"
+                    id="cantidad"
+                    placeholder="Ingrese el stock actual del producto">
+            </div>
+            <button> Confirmar </button>
         </div>
-        <div id="balance">
-            <p id="saldo">$1.500.000</p> <!-- Aca despues voy a implementar que se muestre el balance de la cuenta -->
+    </div>
+    
+    <div id="superior" class="contenedorHUD animacion1">
+        <p id="saldo">$1.500.000</p> <!-- Aca despues voy a implementar que se muestre el balance de la cuenta -->
+        <img src="diseño/logo_sin_redes.jpg" id="logo"></img>
+    </div>
+    <div  class="contenedorSeccion animacion1">
+        <div id="productos" class="contenedorTablas">
+            <table>
+                <tr>
+                    <th>producto</th>
+                    <th>precio</th>
+                    <th>cantidad</th>
+                </tr>
+            </table>
+        </div>
+        <div id="movimientos" class="contenedorTablas">
+            <table>
+                <tr>
+                    <th>fecha</th>
+                    <th>mensaje</th>
+                    <th>monto</th>
+                </tr>
+            </table>
         </div>
     </div>
     <div id="inferior" class="contenedorHUD animacion1">
