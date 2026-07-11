@@ -8,40 +8,65 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="sombra">
-        <div class="contenedor">
+    <div id="overlay" class="sombra oculto">
+        <div id="agregarProducto" class="contenedor oculto">
             <div class="campo">
                 <label for="producto">Producto</label>
                 <input
                     type="text"
                     id="producto"
-                    placeholder="Ingrese nombre del producto">
+                    placeholder="Nombre del producto...">
             </div>
             <div class="campo">
                 <label for="precio">Precio</label>
                 <input
                     type="number"
                     id="precio"
-                    placeholder="Ingrese el precio producto">
+                    placeholder="Ingrese el precio...">
             </div>
             <div class="campo">
                 <label for="cantidad">Cantidad</label>
                 <input
                     type="number"
                     id="cantidad"
-                    placeholder="Ingrese el stock actual del producto">
+                    placeholder="Stock actual...">
             </div>
-            <button> Confirmar </button>
+            <button id="btnConfirmarP"> Confirmar </button>
+
+        </div>
+        <div id="agregarMovimiento" class="contenedor oculto">
+            <div class="campo">
+                <label for="descripcion">Descripción</label>
+                <input
+                    type="text"
+                    id="descripcion"
+                    placeholder="Describí el movimiento...">
+            </div>
+            <div class="campo">
+                <label for="monto">Monto</label>
+                <input
+                    type="number"
+                    id="precio"
+                    placeholder="Ingresa el monto...">
+            </div>
+            <div class="campo">
+                <button id="btnGasto"></button>
+                <p>Gasto</p>
+            </div>
+            <button id="btnConfirmarM"> Confirmar </button>
+        </div>
+
+        <div id="mensaje" class="contenedor oculto">
         </div>
     </div>
     
     <div id="superior" class="contenedorHUD animacion1">
-        <p id="saldo">$1.500.000</p> <!-- Aca despues voy a implementar que se muestre el balance de la cuenta -->
+        <p id="saldo"> </p>
         <img src="diseño/logo_sin_redes.jpg" id="logo"></img>
     </div>
     <div  class="contenedorSeccion animacion1">
         <div id="productos" class="contenedorTablas">
-            <table>
+            <table id="tablaProductos">
                 <tr>
                     <th>producto</th>
                     <th>precio</th>
@@ -50,7 +75,7 @@
             </table>
         </div>
         <div id="movimientos" class="contenedorTablas">
-            <table>
+            <table id="tablaMovimientos">
                 <tr>
                     <th>fecha</th>
                     <th>mensaje</th>
