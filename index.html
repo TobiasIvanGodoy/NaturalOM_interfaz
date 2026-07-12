@@ -9,55 +9,10 @@
 </head>
 <body>
     <div id="overlay" class="sombra oculto">
-        <div id="agregarProducto" class="contenedor oculto">
-            <div class="campo">
-                <label for="producto">Producto</label>
-                <input
-                    type="text"
-                    id="producto"
-                    placeholder="Nombre del producto...">
-            </div>
-            <div class="campo">
-                <label for="precio">Precio</label>
-                <input
-                    type="number"
-                    id="precio"
-                    placeholder="Ingrese el precio...">
-            </div>
-            <div class="campo">
-                <label for="cantidad">Cantidad</label>
-                <input
-                    type="number"
-                    id="cantidad"
-                    placeholder="Stock actual...">
-            </div>
-            <button id="btnConfirmarP"> Confirmar </button>
-
+        <div id="contenedor" class="contenedor">
+            <div id="cerrar"></div>
         </div>
-        <div id="agregarMovimiento" class="contenedor oculto">
-            <div class="campo">
-                <label for="descripcion">Descripción</label>
-                <input
-                    type="text"
-                    id="descripcion"
-                    placeholder="Describí el movimiento...">
-            </div>
-            <div class="campo">
-                <label for="monto">Monto</label>
-                <input
-                    type="number"
-                    id="precio"
-                    placeholder="Ingresa el monto...">
-            </div>
-            <div class="campo">
-                <button id="btnGasto"></button>
-                <p>Gasto</p>
-            </div>
-            <button id="btnConfirmarM"> Confirmar </button>
-        </div>
-
-        <div id="mensaje" class="contenedor oculto">
-        </div>
+        <div id="informacion" class="oculto"></div>
     </div>
     
     <div id="superior" class="contenedorHUD animacion1">
