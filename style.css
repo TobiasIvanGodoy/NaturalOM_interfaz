@@ -1,5 +1,28 @@
 /* Modelo de celular SAMSUNG A17, dimenciones: 1080x2340 */
-/*Elementos*/
+
+/* ==========================================================================
+   VARIABLES
+   ========================================================================== */
+
+:root {
+    --verde-oscuro: #7FA6A1;
+    --verde-claro: #CFE3E0;
+    --arena: #E8D9B8;
+    --crema: #F5EEDC;
+    --oliva: #A6B48A;
+
+    --blanco: white;
+    --negro: black;
+
+    --sombra: rgba(0, 0, 0, 0.3);
+    --overlay: rgba(0, 0, 0, 0.6);
+
+    --borde: 1px solid var(--negro);
+}
+
+/* ==========================================================================
+   RESET
+   ========================================================================== */
 
 html {
     overscroll-behavior: none;
@@ -9,143 +32,150 @@ html {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     font-size: 2vh;
 }
 
 body {
-    background: white;
+    background: var(--blanco);
     background-attachment: fixed;
-    
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    
+
     overscroll-behavior: none;
 }
 
-/* Sombra para menus superpuestos */
-
+/* ==========================================================================
+   SOMBRA / MENÚS SUPERPUESTOS
+   ========================================================================== */
 
 .sombra {
-    background-color: rgb(0, 0, 0, 0.6);
+    position: fixed;
+    inset: 0;
+    z-index: 2;
 
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
 
-    z-index: 2;
-    position: fixed;
-    inset: 0;
+    background-color: var(--overlay);
 }
 
-/* HUD superior */
+/* ==========================================================================
+   HUD
+   ========================================================================== */
 
 .contenedorHUD {
+    position: fixed;
+    width: 100%;
+    z-index: 1;
+
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    
-    background-color: rgb(0, 0, 0, 0.1);
-    
-    width: 100%;
-    
-    z-index: 1;
-    position: fixed;
-    box-shadow: 0 0.5vh 1vh rgba(0, 0, 0, 0.3);
-    border-style: solid;
-    border-width: 1px;
+
+    background-color: rgb(0 0 0 / 10%);
+    border: var(--borde);
+    box-shadow: 0 .5vh 1vh var(--sombra);
 }
 
 #superior {
-    height: 7vh;
     top: 0;
-    
+    height: 7vh;
     padding: 1vh 1vw;
 }
 
+#inferior {
+    bottom: 0;
+    height: 6vh;
+}
+
 #logo {
-    aspect-ratio: 1/1;
     height: 100%;
+    aspect-ratio: 1;
+
     border-radius: 10vw;
-    border-style: hidden;
+    border: none;
 }
 
 #saldo {
-    background-color: white;
-    height: 50%;
-    border-style: solid;
-    border-width: 1px;
-    border-color: black;
-    border-radius: 2vw;
-    
     display: flex;
     align-items: center;
+
+    height: 50%;
     padding: 3vh 2vw;
+
+    background: var(--blanco);
+    border: var(--borde);
+    border-radius: 2vw;
 
     font-size: 4vh;
 }
 
-.animacion1 {
-    animation-duration: 3s;
-    animation-name: Aparezco;
-    animation-fill-mode: forwards;
-}
-
-@keyframes Aparezco {
-    from {
-        opacity: 0;
-    } to {
-        opacity: 1;
-    }
-}
-
-/* HUD inferior */
-
-#inferior {
-    height: 6vh;
-    bottom: 0;
-}
+/* ==========================================================================
+   BOTONES
+   ========================================================================== */
 
 button {
     font-family: Calibri;
     font-size: 2vh;
 }
 
-#inferior button {
-    height: 100%;
-    width: 50%;
-
+button:hover {
+    filter: brightness(.7);
 }
 
-button:hover {
-    filter: brightness(0.7);
+#inferior button {
+    width: 50%;
+    height: 100%;
 }
 
 #btnProducto {
-    background-color: #E8D9B8;
+    background: var(--arena);
 }
 
 #btnMovimiento {
-    background-color: #F5EEDC;
+    background: var(--crema);
 }
 
-/* principal */
+#btnCerrar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-.contenedorSeccion { 
-    background-color: white;
+    height: 100%;
+    aspect-ratio: 1;
+
+    padding: 1vh;
+}
+
+#btnGastoNoPress {
+    width: 5vw;
+    aspect-ratio: 1;
+}
+
+/* ==========================================================================
+   CONTENIDO PRINCIPAL
+   ========================================================================== */
+
+.contenedorSeccion {
     position: relative;
     top: 7vh;
+
     width: 100vw;
     height: 87vh;
+
     overflow: hidden;
+    background: var(--blanco);
 }
 
 .contenedorTablas {
     width: 100%;
-    overflow: scroll;
+    overflow: auto;
 }
 
 #productos {
@@ -156,101 +186,127 @@ button:hover {
     height: 30%;
 }
 
-/* Tablas */
+/* ==========================================================================
+   TABLAS
+   ========================================================================== */
 
 table {
-    font-size: 2.5vh;
-    
-    border-collapse: collapse; 
-    border-spacing: 0;
+    width: 100%;
+
     margin: 0;
 
-    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+
+    font-size: 2.5vh;
+}
+
+table th,
+table td {
+    padding: 5px 10px;
+    text-align: center;
+    border: var(--borde);
 }
 
 table th {
-    padding: 5px 10px;
-    background-color: #7FA6A1;
-    text-align: center;
     position: sticky;
     top: -1px;
     z-index: 1;
-    border-style: solid;
+
+    background: var(--verde-oscuro);
 }
 
 table td {
-    padding: 5px 10px;
-    background-color: #CFE3E0;
-    text-align: center;
-    
-    border-style: solid;
+    background: var(--verde-claro);
 }
 
-#gasto {
-    background-color: rgba(255, 0, 0, 0.2);
+/* Estados de filas/celdas */
+
+.gasto {
+    background-color: rgba(255, 0, 0, .2);
 }
 
-#ganancia {
-    background-color: rgba(0, 255, 0, 0.2);
+.ganancia {
+    background-color: rgba(0, 255, 0, .2);
 }
 
-/* nuevas entradas */
+/* ==========================================================================
+   FORMULARIOS
+   ========================================================================== */
 
 .contenedor {
-    background-color: white;
     width: 80vw;
 
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    align-items: left;
+
     gap: 1vh;
-
-    border-radius: 1vh;
-    box-shadow: 0 0.5vh 1vh rgba(0, 0, 0, 0.3);
-
     padding: 2vh 2vw;
-    
+
+    background: var(--blanco);
+    border-radius: 1vh;
+    box-shadow: 0 .5vh 1vh var(--sombra);
+
     z-index: 2;
 }
 
 .campo {
     display: flex;
     flex-direction: column;
-    
+
     width: 100%;
-    height: 20%;
     padding: 2vh 2vw;
 }
 
 #informacion {
-    background-color: #A6B48A;
+    background: var(--oliva);
+}
+
+/* ==========================================================================
+   BOTÓN CERRAR
+   ========================================================================== */
+
+#cerrar,
+#espacioBoton {
+    display: flex;
+    align-items: center;
+    width: 100%;
 }
 
 #cerrar {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: right;
-    align-items: center;
-    background-color: rgb(0, 0, 0, 0);
-
+    justify-content: flex-end;
+    background: transparent;
 }
 
-#btnCerrar {
-    height: 100%;
-    aspect-ratio: 1/1;
-    
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-    align-items: center;
-    
-    padding: 1vh 1vh;
-    
+#espacioBoton {
+    flex-direction: row-reverse;
+    justify-content: left;
+    gap: 2vw;
+    height: 2vh;
 }
 
-/* Ocultar elementos */
+/* ==========================================================================
+   ANIMACIONES
+   ========================================================================== */
+
+.animacion1 {
+    animation: Aparezco 3s forwards;
+}
+
+@keyframes Aparezco {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* ==========================================================================
+   UTILIDADES
+   ========================================================================== */
 
 .oculto {
     display: none;
