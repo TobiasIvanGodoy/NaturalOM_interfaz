@@ -20,8 +20,8 @@
         <div id="informacion" class="oculto"></div>
     </div>
 
-    <div id="superior" class="contenedorHUD animacion1">
-        <p id="saldo"></p>
+    <div id="superior" class="contenedorRow animacion1">
+        <p id="saldo">$450.000</p>
         <img
             id="logo"
             src="diseño/logo_sin_redes.jpg"
@@ -29,40 +29,54 @@
     </div>
 
     <div class="contenedorSeccion animacion1">
-
-        <div id="productos" class="contenedorTablas">
             <table id="tablaProductos">
                 <tr>
                     <th>Producto</th>
                     <th>Precio</th>
                     <th>Cantidad</th>
+                    <th>Distribuidor</th>
                 </tr>
-            </table>
-        </div>
-
-        <div id="movimientos" class="contenedorTablas">
-            <table id="tablaMovimientos">
                 <tr>
-                    <th>Fecha</th>
-                    <th>Mensaje</th>
-                    <th>Monto</th>
+                    <td>Miel</td>
+                    <td>2500</td>
+                    <td>4</td>
+                    <td>Desarrolladores de miel SA</td>
                 </tr>
             </table>
-        </div>
-
+            <button id="btnAgregar">
+                +
+            </button>
     </div>
 
-    <div id="inferior" class="contenedorHUD animacion1">
-        <button id="btnProducto">
-            Agregar producto
+    <div id="inferior" class="contenedorRow animacion1">
+        <button 
+        id="btnProducto" 
+        class="btnSeccion">
+        <img src="diseño/productos.png" alt="Productos">
         </button>
 
-        <button id="btnMovimiento">
-            Agregar movimiento
+        <button id="btnMovStock" 
+        class="btnSeccion">
+        <img src="diseño/mov_stock.png" alt="movimientos de stock">
+        </button>
+
+        <button id="btnGastos" 
+        class="btnSeccion">
+        <img src="diseño/gastos.png" alt="Gastos">
+        </button>
+
+        <button id="btnDistribuidores" 
+        class="btnSeccion">
+        <img src="diseño/distribuidores.png" alt="Distribuitores">
+        </button>
+
+        <button id="btnStats" 
+        class="btnSeccion">
+        <img src="diseño/estadisticas.png" alt="Estadisticas">
         </button>
     </div>
 
-    <script src="script.js"></script>
+<!--<script src="script.js"></script>-->
 
 </body>
 

@@ -122,10 +122,6 @@ const botonesAgregados = [
         boton: btnMovimiento,
 
         campos: {
-            mensaje: [
-                "Describí el movimiento",
-                "text"
-            ],
 
             monto: [
                 "Ingrese el monto del movimiento",
@@ -146,32 +142,12 @@ for (const configuracion of botonesAgregados) {
 
         overlay.classList.remove("oculto");
 
-        const elementos = abrirMenu(configuracion.campos);
-
         if (configuracion.boton === btnMovimiento) {
 
-            const espacioBoton = document.createElement("div");
-            espacioBoton.id = "espacioBoton";
-            espacioBoton.textContent = "Gasto";
-
-            const btnGasto = crearBoton(
-                "btnGastoNoPress",
-                "",
-                espacioBoton
-            );
-
-            contenedor.appendChild(espacioBoton);
-
-            elementos.push(espacioBoton);
-            elementos.push(btnGasto);
-
-            btnGasto.addEventListener("click", function () {
-
-                // lógica del backend
-
-            });
-
         }
+
+        const elementos = abrirMenu(configuracion.campos);
+
 
         const btnConfirmar = crearBoton(
             "btnConfirmar",

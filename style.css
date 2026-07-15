@@ -11,13 +11,7 @@
     --crema: #F5EEDC;
     --oliva: #A6B48A;
 
-    --blanco: white;
-    --negro: black;
 
-    --sombra: rgba(0, 0, 0, 0.3);
-    --overlay: rgba(0, 0, 0, 0.6);
-
-    --borde: 1px solid var(--negro);
 }
 
 /* ==========================================================================
@@ -34,11 +28,11 @@ html {
     box-sizing: border-box;
 
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    font-size: 2vh;
+    font-size: clamp(28px, 3vh, 50px);
 }
 
 body {
-    background: var(--blanco);
+    background: white;
     background-attachment: fixed;
 
     display: flex;
@@ -62,36 +56,38 @@ body {
     justify-content: space-evenly;
     align-items: center;
 
-    background-color: var(--overlay);
+    background-color: rgba(0, 0, 0, 0.6);
 }
 
 /* ==========================================================================
    HUD
    ========================================================================== */
 
-.contenedorHUD {
-    position: fixed;
-    width: 100%;
-    z-index: 1;
-
+.contenedorRow {
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
 
-    background-color: rgb(0 0 0 / 10%);
-    border: var(--borde);
-    box-shadow: 0 .5vh 1vh var(--sombra);
 }
 
 #superior {
+    z-index: 1;
+    width: 100%;
+    position: fixed;
     top: 0;
     height: 7vh;
     padding: 1vh 1vw;
+    
 }
 
 #inferior {
+    z-index: 1;
+    width: 100%;
+    position: fixed;
     bottom: 0;
     height: 6vh;
+    box-shadow: 0 -1vh 1.5vh rgba(0, 0, 0, 0.4);
 }
 
 #logo {
@@ -107,13 +103,11 @@ body {
     align-items: center;
 
     height: 50%;
-    padding: 3vh 2vw;
+    padding: 2vh 2vw;
 
-    background: var(--blanco);
-    border: var(--borde);
+    border: 1px solid black;
     border-radius: 2vw;
 
-    font-size: 4vh;
 }
 
 /* ==========================================================================
@@ -121,43 +115,41 @@ body {
    ========================================================================== */
 
 button {
-    font-family: Calibri;
-    font-size: 2vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
 }
 
 button:hover {
     filter: brightness(.7);
 }
 
-#inferior button {
-    width: 50%;
+.btnSeccion {
+    flex: 1;
     height: 100%;
+    border: none;
+    background-color: white;
 }
 
-#btnProducto {
-    background: var(--arena);
-}
-
-#btnMovimiento {
-    background: var(--crema);
+.btnSeccion img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; 
 }
 
 #btnCerrar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
     height: 100%;
     aspect-ratio: 1;
 
     padding: 1vh;
 }
 
-#btnGastoNoPress {
-    width: 5vw;
-    aspect-ratio: 1;
+#btnAgregar {
+    background-color: lightcyan;
+    border-radius: 2vh;
+    padding: 1vh 10vw;
 }
-
 /* ==========================================================================
    CONTENIDO PRINCIPAL
    ========================================================================== */
@@ -165,25 +157,17 @@ button:hover {
 .contenedorSeccion {
     position: relative;
     top: 7vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: top;
+    gap: 1vh;
 
-    width: 100vw;
     height: 87vh;
+    min-width: 100%;
 
-    overflow: hidden;
-    background: var(--blanco);
-}
-
-.contenedorTablas {
-    width: 100%;
     overflow: auto;
-}
-
-#productos {
-    height: 70%;
-}
-
-#movimientos {
-    height: 30%;
+    background-color: white;
 }
 
 /* ==========================================================================
@@ -191,10 +175,12 @@ button:hover {
    ========================================================================== */
 
 table {
-    width: 100%;
+    min-width: 100%;
+    width: max-content;
 
     margin: 0;
 
+    table-layout: auto;
     border-collapse: collapse;
     border-spacing: 0;
 
@@ -205,7 +191,9 @@ table th,
 table td {
     padding: 5px 10px;
     text-align: center;
-    border: var(--borde);
+    border-style: solid;
+    border-width: 1px;
+    white-space: nowrap;
 }
 
 table th {
@@ -213,11 +201,11 @@ table th {
     top: -1px;
     z-index: 1;
 
-    background: var(--verde-oscuro);
+    background-color: lightgreen;
 }
 
 table td {
-    background: var(--verde-claro);
+    background-color: white;
 }
 
 /* Estados de filas/celdas */
@@ -234,7 +222,7 @@ table td {
    FORMULARIOS
    ========================================================================== */
 
-.contenedor {
+.contenedorMenu {
     width: 80vw;
 
     display: flex;
@@ -246,7 +234,7 @@ table td {
 
     background: var(--blanco);
     border-radius: 1vh;
-    box-shadow: 0 .5vh 1vh var(--sombra);
+    box-shadow: 0 1vh 1.5vh rgba(0, 0, 0, 0.4);
 
     z-index: 2;
 }
@@ -257,33 +245,6 @@ table td {
 
     width: 100%;
     padding: 2vh 2vw;
-}
-
-#informacion {
-    background: var(--oliva);
-}
-
-/* ==========================================================================
-   BOTÓN CERRAR
-   ========================================================================== */
-
-#cerrar,
-#espacioBoton {
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-#cerrar {
-    justify-content: flex-end;
-    background: transparent;
-}
-
-#espacioBoton {
-    flex-direction: row-reverse;
-    justify-content: left;
-    gap: 2vw;
-    height: 2vh;
 }
 
 /* ==========================================================================
