@@ -155,19 +155,24 @@ button:hover {
    ========================================================================== */
 
 .contenedorSeccion {
-    position: relative;
+    position: fixed;
     top: 7vh;
+    bottom: 6vh;
+    left: 0;
+    right: 0;
+
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: top;
     gap: 1vh;
+    padding: 1vh;
 
-    height: 87vh;
-    min-width: 100%;
+    overflow: hidden; 
+}
+
+.contenedorTabla {
+    flex: 1;
 
     overflow: auto;
-    background-color: white;
 }
 
 /* ==========================================================================
