@@ -128,6 +128,16 @@ const botonesAgregados = [
         agregar: "Agregar distribuidor",
 
         id: "tablaDistribuidores"
+    },
+
+    {
+        boton: btnStats,
+
+        atributos: [],
+
+        agregar: "En construcción",
+
+        id: "tablaEstadisticas"
     }
 ];
 
