@@ -3,34 +3,22 @@
 // ==========================================================================
 
 const btnProducto = document.getElementById("btnProducto");
-const btnMovimiento = document.getElementById("btnMovimiento");
+const btnMovStock = document.getElementById("btnMovStock");
+const btnGastos = document.getElementById("btnGastos");
+const btnDistribuidores = document.getElementById("btnDistribuidores");
+const btnStats = document.getElementById("btnStats");
 
 // ==========================================================================
-// TABLAS
+// CONTENEDORES
 // ==========================================================================
 
-const tablaProductos = document.getElementById("tablaProductos");
-const tablaMovimientos = document.getElementById("tablaMovimientos");
-
-// ==========================================================================
-// OTROS
-// ==========================================================================
-
+const seccionActual = document.getElementById("seccionActual");
 const saldo = document.getElementById("saldo");
-const informacion = document.getElementById("informacion");
 const overlay = document.getElementById("overlay");
-const contenedor = document.getElementById("contenedor");
-const cerrar = document.getElementById("cerrar");
 
 // ==========================================================================
 // FUNCIONES
 // ==========================================================================
-
-function mostrarMensaje(texto, tipo) {
-    informacion.textContent = texto;
-    informacion.classList.remove("oculto");
-    informacion.classList.add(tipo);
-}
 
 function cerrarMenu(elementos) {
     overlay.classList.add("oculto");
@@ -91,6 +79,9 @@ function crearBoton(id, texto, contenedor, clases = []) {
     return boton;
 }
 
+function modificarOverlay() {
+    
+}
 // ==========================================================================
 // CONFIGURACIÓN
 // ==========================================================================
@@ -100,85 +91,78 @@ const botonesAgregados = [
     {
         boton: btnProducto,
 
-        campos: {
-            producto: [
-                "Ingrese el nombre del producto",
-                "text"
-            ],
+        atributos: ["Producto", "Precio", "Cantidad", "Distribuidor"],
 
-            precio: [
-                "Ingrese el precio del producto",
-                "number"
-            ],
+        agregar: "Nuevo producto",
 
-            stock: [
-                "Ingrese el stock actual",
-                "number"
-            ]
-        }
+        id: "tablaProductos",
+
+        campos: []
     },
 
     {
-        boton: btnMovimiento,
+        boton: btnMovStock,
 
-        campos: {
+        atributos: ["Categoria", "Producto", "Cantidad", "Monto", "Fecha"],
 
-            monto: [
-                "Ingrese el monto del movimiento",
-                "number"
-            ]
-        }
+        agregar: "Reponer stock",
+
+        id: "tablaMovStock"
+    },
+
+    {
+        boton: btnGastos,
+
+        atributos: ["Categoria", "Monto", "Fecha"],
+
+        agregar: "Añadir gasto",
+
+        id: "tablaGastos"
+    },
+
+    {
+        boton: btnDistribuidores,
+
+        atributos: ["Nombre", "Dirección", "Página"],
+
+        agregar: "Agregar distribuidor",
+
+        id: "tablaDistribuidores"
     }
-
 ];
 
 // ==========================================================================
-// EVENTOS
+// CONSTRUCCION DINÁMICA DE TABLAS
 // ==========================================================================
 
 for (const configuracion of botonesAgregados) {
 
     configuracion.boton.addEventListener("click", function () {
+        seccionActual.innerHTML = "";
+        const tablaActual = document.createElement("div");
+        tablaActual.id = "tablaActual";
+        tablaActual.classList.add("contenedorTabla");
 
-        overlay.classList.remove("oculto");
+        const tabla = document.createElement("table");
+        
+        tabla.id = configuracion.id;
 
-        if (configuracion.boton === btnMovimiento) {
-
+        for (const atributo of configuracion.atributos) {
+            const columna = document.createElement("th");
+            columna.textContent = atributo;
+            tabla.appendChild(columna);
         }
 
-        const elementos = abrirMenu(configuracion.campos);
+        tablaActual.appendChild(tabla);
+        seccionActual.appendChild(tablaActual);
 
+        const boton = document.createElement("button");
+        boton.textContent = configuracion.agregar;
+        boton.id = "btnAgregar";
 
-        const btnConfirmar = crearBoton(
-            "btnConfirmar",
-            "Confirmar",
-            contenedor
-        );
-
-        elementos.push(btnConfirmar);
-
-        const btnCerrar = crearBoton(
-            "btnCerrar",
-            "✕",
-            cerrar
-        );
-
-        elementos.push(btnCerrar);
-
-        btnCerrar.addEventListener("click", function () {
-
-            cerrarMenu(elementos);
-
-        });
-
-        btnConfirmar.addEventListener("click", function () {
-
-            // lógica del backend
-
-            cerrarMenu(elementos);
-
-        });
-
-    });
-
+        boton.addEventListener("click", function(){
+            modificarOverlay();
+        })
+        seccionActual.appendChild(boton);
+    })
 }
