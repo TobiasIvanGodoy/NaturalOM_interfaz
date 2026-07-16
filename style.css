@@ -125,11 +125,12 @@ button:hover {
     padding: 1vh;
 }
 
-#btnAgregar {
+.btnAgregar {
     background-color: lightcyan;
     border-radius: 2vh;
     padding: 1vh 10vw;
 }
+
 /* ==========================================================================
    CONTENIDO PRINCIPAL
    ========================================================================== */
@@ -235,16 +236,16 @@ table td {
    ========================================================================== */
 
 .contenedorMenu {
-    width: 80vw;
 
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    align-items: center;
 
     gap: 1vh;
     padding: 2vh 2vw;
 
-    background: var(--blanco);
+    background: white;
     border-radius: 1vh;
     box-shadow: 0 1vh 1.5vh rgba(0, 0, 0, 0.4);
 
@@ -252,11 +253,10 @@ table td {
 }
 
 .campo {
+    width: 80vw;
     display: flex;
     flex-direction: column;
-
-    width: 100%;
-    padding: 2vh 2vw;
+    padding: 1vh 2vw;
 }
 
 /* ==========================================================================
