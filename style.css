@@ -65,6 +65,7 @@ body {
     top: 0;
     height: 7vh;
     padding: 1vh 1vw;
+    box-shadow: 0 0.5vh 1vh rgba(0, 0, 0, 0.4);
     
 }
 
@@ -74,7 +75,7 @@ body {
     position: fixed;
     bottom: 0;
     height: 6vh;
-    box-shadow: 0 -1vh 1.5vh rgba(0, 0, 0, 0.4);
+    box-shadow: 0 -0.5vh 1vh rgba(0, 0, 0, 0.4);
 }
 
 #saldo {
@@ -87,6 +88,7 @@ body {
 
     border: 1px solid black;
     border-radius: 2vw;
+    background-color: rgba(255, 255, 0, 0.6);
 
 }
 
@@ -121,8 +123,14 @@ button:hover {
 #btnCerrar {
     height: 100%;
     aspect-ratio: 1;
+    border: none;
+    background-color: rgba(0, 0, 0, 0);
+}
 
-    padding: 1vh;
+#btnCerrar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; 
 }
 
 .btnAgregar {
@@ -162,13 +170,13 @@ button:hover {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color:rgba(173, 255, 47, 0.8);
+    background-color:rgba(173, 216, 230, 0.6);
     border-radius: 1vh;
     gap: 3vh;
 }
 
 #logo {
-    height: 50%;
+    width: clamp(500px, 70%, 600px);
     aspect-ratio: 1;
 
     border-radius: 50vw;

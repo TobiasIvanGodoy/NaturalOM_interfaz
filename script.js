@@ -1,3 +1,5 @@
+const url = "http://localhost:5000"
+
 // ==========================================================================
 // BOTONES
 // ==========================================================================
@@ -38,25 +40,40 @@ function crearCampo(entrada, contenedor) {
     contenedor.appendChild(campo);
 }
 
+
+function crearBtnCerrar(contenedor) {
+
+    const cerrar = document.createElement("div");
+    cerrar.classList.add("contenedorRow");
+    cerrar.style.justifyContent = "flex-end";
+    cerrar.style.width = "100%";
+    cerrar.style.height = "4vh";
+    contenedor.appendChild(cerrar);
+
+    const btnCerrar = document.createElement("button");
+    btnCerrar.id = "btnCerrar";
+    cerrar.appendChild(btnCerrar);
+
+    const img = document.createElement("img");
+    img.alt = "cerrar ventana";
+    img.src = "diseño/btnCerrar.png";
+    btnCerrar.appendChild(img)
+
+    btnCerrar.addEventListener("click", function (){
+        overlay.classList.add("oculto")
+    })
+
+}
+
+// nuevo producto 
+
 function nuevoProducto() {
 
     const contenedor = document.createElement("div");
     contenedor.classList.add("contenedorMenu");
     overlay.appendChild(contenedor);
 
-    const cerrar = document.createElement("div");
-    cerrar.classList.add("contenedorRow");
-    cerrar.style.justifyContent = "flex-end";
-    cerrar.style.width = "100%";
-    contenedor.appendChild(cerrar);
-
-    const btnCerrar = document.createElement("button");
-    btnCerrar.id = "btnCerrar"
-    btnCerrar.textContent = "X"
-    cerrar.appendChild(btnCerrar)
-    btnCerrar.addEventListener("click", function (){
-        overlay.classList.add("oculto")
-    })
+    crearBtnCerrar(contenedor);
 
     const inputs = [
             {id : "producto",
@@ -113,6 +130,7 @@ function nuevoProducto() {
 
 }
 
+// reponer stock
 
 function reponerStock() {
     
@@ -120,19 +138,7 @@ function reponerStock() {
     contenedor.classList.add("contenedorMenu");
     overlay.appendChild(contenedor);
 
-    const cerrar = document.createElement("div");
-    cerrar.classList.add("contenedorRow");
-    cerrar.style.justifyContent = "flex-end";
-    cerrar.style.width = "100%";
-    contenedor.appendChild(cerrar);
-
-    const btnCerrar = document.createElement("button");
-    btnCerrar.id = "btnCerrar"
-    btnCerrar.textContent = "X"
-    cerrar.appendChild(btnCerrar)
-    btnCerrar.addEventListener("click", function (){
-        overlay.classList.add("oculto")
-    })
+    crearBtnCerrar(contenedor);
 
     const campo = document.createElement("div");
     campo.className = "campo";
@@ -185,25 +191,15 @@ function reponerStock() {
 
 }
 
+// añadir gasto
+
 function añadirGasto() {
     
     const contenedor = document.createElement("div");
     contenedor.classList.add("contenedorMenu");
     overlay.appendChild(contenedor);
 
-    const cerrar = document.createElement("div");
-    cerrar.classList.add("contenedorRow");
-    cerrar.style.justifyContent = "flex-end";
-    cerrar.style.width = "100%";
-    contenedor.appendChild(cerrar);
-
-    const btnCerrar = document.createElement("button");
-    btnCerrar.id = "btnCerrar"
-    btnCerrar.textContent = "X"
-    cerrar.appendChild(btnCerrar)
-    btnCerrar.addEventListener("click", function (){
-        overlay.classList.add("oculto")
-    })
+    crearBtnCerrar(contenedor);
 
     const campo = document.createElement("div");
     campo.className = "campo";
@@ -258,25 +254,15 @@ function añadirGasto() {
 
 }
 
+// agregar distribuidor
+
 function agregarDistribuidor() {
     
     const contenedor = document.createElement("div");
     contenedor.classList.add("contenedorMenu");
     overlay.appendChild(contenedor);
 
-    const cerrar = document.createElement("div");
-    cerrar.classList.add("contenedorRow");
-    cerrar.style.justifyContent = "flex-end";
-    cerrar.style.width = "100%";
-    contenedor.appendChild(cerrar);
-
-    const btnCerrar = document.createElement("button");
-    btnCerrar.id = "btnCerrar"
-    btnCerrar.textContent = "X"
-    cerrar.appendChild(btnCerrar)
-    btnCerrar.addEventListener("click", function (){
-        overlay.classList.add("oculto")
-    })
+    crearBtnCerrar(contenedor);
 
     const inputs = [
             {id: "nombre",
@@ -308,20 +294,15 @@ function agregarDistribuidor() {
 
 }
 
+// crear gráficos
+
 function crearGraficos() {
     //solo un placeholder para tener algo.
     const contenedor = document.createElement("div");
     contenedor.classList.add("contenedorMenu");
     overlay.appendChild(contenedor);
     
-    const btnConfirmar = document.createElement("button");
-    btnConfirmar.classList.add("btnAgregar")
-    btnConfirmar.textContent = "Confirmar"
-    contenedor.appendChild(btnConfirmar)
-    btnConfirmar.addEventListener("click", function (){
-        overlay.classList.add("oculto")
-    })
-
+    crearBtnCerrar(contenedor);
 
 }
 
@@ -340,7 +321,11 @@ const botonesAgregados = [
 
         id: "tablaProductos",
 
-        modificarOverlay : nuevoProducto
+        modificarOverlay : nuevoProducto,
+
+        titulo: "productos",
+
+        ruta : "diseño/productos.png"
     },
 
     {
@@ -352,7 +337,11 @@ const botonesAgregados = [
 
         id: "tablaMovStock",
 
-        modificarOverlay : reponerStock
+        modificarOverlay : reponerStock,
+
+        titulo: "movimientos",
+
+        ruta : "diseño/mov_stock.png"
     },
 
     {
@@ -364,7 +353,11 @@ const botonesAgregados = [
 
         id: "tablaGastos",
 
-        modificarOverlay : añadirGasto
+        modificarOverlay : añadirGasto,
+
+        titulo: "gastos",
+
+        ruta : "diseño/gastos.png"
     },
 
     {
@@ -376,7 +369,11 @@ const botonesAgregados = [
 
         id: "tablaDistribuidores",
 
-        modificarOverlay : agregarDistribuidor
+        modificarOverlay : agregarDistribuidor,
+
+        titulo: "distribuidores",
+
+        ruta : "diseño/distribuidores.png"
     },
 
     {
@@ -388,7 +385,11 @@ const botonesAgregados = [
 
         id: "tablaEstadisticas",
 
-        modificarOverlay : crearGraficos
+        modificarOverlay : crearGraficos,
+
+        titulo: "graficos",
+
+        ruta : "diseño/estadisticas.png"
     }
 ];
 
@@ -398,11 +399,22 @@ const botonesAgregados = [
 
 for (const configuracion of botonesAgregados) {
 
-    configuracion.boton.addEventListener("click", function () {
-        seccionActual.innerHTML = "";
+    configuracion.boton.addEventListener("click", async function () {
+        seccionActual.innerHTML = "";configuracion.boton.innerHTML = "";
         const tablaActual = document.createElement("div");
         tablaActual.id = "tablaActual";
         tablaActual.classList.add("contenedorTabla");
+
+        for (const otraConfiguracion of botonesAgregados) {
+            if (configuracion.boton !== otraConfiguracion.boton) {
+                otraConfiguracion.boton.innerHTML = "";
+                const img = document.createElement("img");
+                img.alt = otraConfiguracion.titulo;
+                img.src = otraConfiguracion.ruta;
+                otraConfiguracion.boton.appendChild(img)
+            }
+        }
+        configuracion.boton.textContent = configuracion.titulo;
 
         const tabla = document.createElement("table");
         
@@ -412,6 +424,22 @@ for (const configuracion of botonesAgregados) {
             const columna = document.createElement("th");
             columna.textContent = atributo;
             tabla.appendChild(columna);
+        }
+
+        const respuesta = await fetch(`${url}/obtener/${configuracion.id}`,
+            {
+                method: "GET",
+
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }
+        )
+
+        const datos = await respuesta.json();
+
+        for (const registro of datos) {
+            
         }
 
         tablaActual.appendChild(tabla);
