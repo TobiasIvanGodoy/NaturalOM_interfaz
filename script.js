@@ -393,7 +393,7 @@ const botonesAgregados = [
 
         id: "tablaMovStock",
 
-        mostrarTabla: mostrarMovimientos,
+        modificarOverlay : reponerStock,
 
         titulo: "movimientos",
 
