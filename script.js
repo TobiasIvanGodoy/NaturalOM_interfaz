@@ -306,6 +306,62 @@ function crearGraficos() {
 
 }
 
+// construccion de tablas 
+async function operar(operacion, producto) {
+
+}
+
+
+function construirBtn(tipo, producto, imagen) {
+    const boton = document.createElement("button");
+    const img = document.createElement("img");
+    img.alt = tipo;
+    img.src = imagen;
+    boton.append(img);
+
+    boton.addEventListener("click", function() {
+        operar(tipo, producto);
+    })
+    return boton
+}
+
+function mostrarProductos(registro) {
+    const fila = document.createElement("tr");
+    
+    for (const celda in registro) {
+        let valor = document.createElement("td")
+        if (celda === "cantidad") {
+
+            const btnMenos = construirBtn("btnMenos", registro["producto"], "diseño/btnMenos.png");
+
+            const p = document.createElement("p");
+            p.textContent = registro[celda];
+
+            const btnMas = construirBtn("btnMas", registro["producto"], "diseño/btnMas.png");
+
+            const elementos = [btnMenos, p, btnMas];
+
+            for (const elem of elementos) {
+                valor.append(elem)
+            }
+            
+        } else {
+            valor.textContent = registro[celda];
+        }
+        fila.append(valor)
+    }
+}
+
+function mostrarTabla(registro) {
+    const fila = document.createElement("tr");
+    for (const celda of registro) {
+        const valor = document.createElement("td")
+        valor.textContent = celda;
+        fila.append(valor)
+    }
+}
+
+
 // ==========================================================================
 // CONFIGURACIÓN
 // ==========================================================================
@@ -337,7 +393,7 @@ const botonesAgregados = [
 
         id: "tablaMovStock",
 
-        modificarOverlay : reponerStock,
+        mostrarTabla: mostrarMovimientos,
 
         titulo: "movimientos",
 
@@ -400,7 +456,7 @@ const botonesAgregados = [
 for (const configuracion of botonesAgregados) {
 
     configuracion.boton.addEventListener("click", async function () {
-        seccionActual.innerHTML = "";configuracion.boton.innerHTML = "";
+        configuracion.boton.innerHTML = "";
         const tablaActual = document.createElement("div");
         tablaActual.id = "tablaActual";
         tablaActual.classList.add("contenedorTabla");
@@ -426,23 +482,30 @@ for (const configuracion of botonesAgregados) {
             tabla.appendChild(columna);
         }
 
-        const respuesta = await fetch(`${url}/obtener/${configuracion.id}`,
-            {
-                method: "GET",
+        if (configuracion.id !== btnStats) {
+            const respuesta = await fetch(`${url}/obtener/${configuracion.id}`,
+                {
+                    method: "GET",
 
-                headers: {
-                    "Content-Type": "application/json"
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                }
+            )
+
+            const datos = await respuesta.json();
+
+            for (const registro of datos.registros) {
+                if (configuracion.id === "tablaProductos") {
+                    mostrarProductos(registro)
+                } else {
+                    mostrarTabla(registro)
                 }
             }
-        )
-
-        const datos = await respuesta.json();
-
-        for (const registro of datos) {
-            
         }
-
+        
         tablaActual.appendChild(tabla);
+        seccionActual.innerHTML = "";
         seccionActual.appendChild(tablaActual);
 
         const boton = document.createElement("button");
@@ -454,6 +517,7 @@ for (const configuracion of botonesAgregados) {
             overlay.classList.remove("oculto");
             configuracion.modificarOverlay();
         })
+
         seccionActual.appendChild(boton);
     })
 }

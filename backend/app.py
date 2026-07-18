@@ -1,9 +1,12 @@
 from flask import Flask, request
 from flask_cors import CORS
-import os 
+import os
+from db import tablaProductos,tablaDistribuidores, tablaGastos, tablaMovStock, crear_base
 
 app = Flask(__name__)
 CORS(app)
+
+crear_base()
 
 """
 @app.route("/url", methods=["metodo"])
@@ -16,6 +19,18 @@ def accion():
 
     return {"estado" : "ok"}
 """
+
+tablas = {
+    "tablaProductos" : tablaProductos,
+    "tablaMoviStock" : tablaMovStock,
+    "tablaGastos" : tablaGastos,
+    "tablaDistribuidores" : tablaDistribuidores
+}
+
+@app.route("/obtener/<tabla>", methods=["GET"])
+def devolverTabla(tabla):
+    return {"estado" : "ok",
+            "tabla" : tablas[tabla]()}
 
 
 
