@@ -1,3 +1,11 @@
+`Tareas restantes: 
+Reformular el boton de eliminar.
+Que los botones de confirmar envien los registros al backend.
+definir e implementar todas las funciones del backend.
+conectar y recibir las tablas correspondientes.
+modularizar.
+`
+
 const url = "http://localhost:5000"
 
 const btnProducto = document.getElementById("btnProducto");
