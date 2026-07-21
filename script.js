@@ -132,6 +132,10 @@ function nuevoProducto() {
 
 // reponer stock
 
+async function enviarMovimiento() {
+
+}
+
 function reponerStock() {
     
     const contenedor = document.createElement("div");
@@ -186,7 +190,7 @@ function reponerStock() {
     contenedor.appendChild(btnConfirmar)
     btnConfirmar.addEventListener("click", function (){
         overlay.classList.add("oculto")
-        //logica de guardado en el backend
+        enviarMovimiento();
     })
 
 }
@@ -256,6 +260,40 @@ function añadirGasto() {
 
 // agregar distribuidor
 
+async function enviarDistribuidor(contenedor) {
+    const inputNombre = document.getElementById("nombre")
+    const inputDireccion = document.getElementById("dirección")
+    const inputPagina = document.getElementById("página_web")
+
+    const respuesta = await fetch(
+        `${url}/enviarDistribuidor`,
+            {method: "POST",
+            headers: {
+                "Content-Type" : "application/json"
+            },
+            body: JSON.stringify({
+                nombre : inputNombre.value,
+                direccion : inputDireccion.value,
+                pagina : inputPagina.value
+            })
+        }  
+    )
+    const datos = await respuesta.json();
+
+    if (datos.estado === "ok") {
+        recargarTabla();
+        overlay.classList.add("oculto")
+    } else {
+        const mensaje = document.createElement("p");
+        mensaje.classList.add("gasto")
+        mensaje.textContent = "Error al registrar";
+        contenedor.appendChild(mensaje)
+        inputNombre.value = "";
+        inputDireccion.value ="";
+        inputPagina.value="";
+    }
+}
+
 function agregarDistribuidor() {
     
     const contenedor = document.createElement("div");
@@ -273,7 +311,7 @@ function agregarDistribuidor() {
             tipo: "text",
             placeholder : "Dirección del distribuidor..."
             },
-            {id: "página web",
+            {id: "página_web",
             tipo: "text",
             placeholder : "Página web del distribuidor..."
             }
@@ -288,8 +326,7 @@ function agregarDistribuidor() {
     btnConfirmar.textContent = "Confirmar"
     contenedor.appendChild(btnConfirmar)
     btnConfirmar.addEventListener("click", function (){
-        overlay.classList.add("oculto")
-        //logica de guardado en el backend
+        enviarDistribuidor(contenedor);
     })
 
 }
@@ -308,59 +345,171 @@ function crearGraficos() {
 
 // construccion de tablas 
 async function operar(operacion, producto) {
+    if (operacion === "btnMenos") {
 
+    } else if (operacion === "btnMas") {
+        
+    } else {
+
+    }
 }
 
 
-function construirBtn(tipo, producto, imagen) {
+function construirBtn(tipo, producto, imagen, placeholder) {
     const boton = document.createElement("button");
     const img = document.createElement("img");
+    boton.style.backgroundColor = "rgba(0, 0, 0, 0)";
+    boton.style.border = "none";
     img.alt = tipo;
     img.src = imagen;
+    img.style.height = "3vh";
+    img.style.opacity = "80%";
     boton.append(img);
+    
 
-    boton.addEventListener("click", function() {
-        operar(tipo, producto);
+    boton.addEventListener("click", function(){
+        overlay.innerHTML = "";
+        overlay.classList.remove("oculto");
+        const contenedor = document.createElement("div");
+        contenedor.classList.add("contenedorMenu");
+        overlay.appendChild(contenedor);
+
+        crearBtnCerrar(contenedor);
+
+        crearCampo({id:tipo, 
+                    tipo: "number", 
+                    placeholder: placeholder}, 
+                    contenedor);
+
+
+        const btnConfirmar = document.createElement("button");
+        btnConfirmar.classList.add("btnAgregar")
+        btnConfirmar.textContent = "Confirmar"
+        contenedor.appendChild(btnConfirmar)
+        btnConfirmar.addEventListener("click", function (){
+            operar(tipo, producto);
+        })
     })
     return boton
 }
 
-function mostrarProductos(registro) {
+function mostrarProductos(registro, tabla) {
     const fila = document.createElement("tr");
     
     for (const celda in registro) {
         let valor = document.createElement("td")
         if (celda === "cantidad") {
+            const div = document.createElement("div")
+            div.classList.add("celda")
 
-            const btnMenos = construirBtn("btnMenos", registro["producto"], "diseño/btnMenos.png");
+            const btnMenos = construirBtn("btnMenos", registro["producto"], "diseño/btnMenos.png","Cantidad que se vendío...");
 
             const p = document.createElement("p");
             p.textContent = registro[celda];
 
-            const btnMas = construirBtn("btnMas", registro["producto"], "diseño/btnMas.png");
+            const btnMas = construirBtn("btnMas", registro["producto"], "diseño/btnMas.png", "Cantidad que entra...");
 
             const elementos = [btnMenos, p, btnMas];
 
             for (const elem of elementos) {
-                valor.append(elem)
+                div.append(elem)
             }
-            
+
+            valor.append(div)
+        } else if (celda === "precio") {
+
+            const div = document.createElement("div")
+            div.classList.add("celda")
+
+            const p = document.createElement("p");
+            p.textContent = registro[celda];
+
+            const btnEditar = construirBtn("btnEditar", registro["producto"], "diseño/btnEditar.png", "Nuevo precio...")
+
+            const elementos = [p, btnEditar];
+
+            for (const elem of elementos) {
+                div.append(elem);
+            }
+
+            valor.append(div)
+
         } else {
             valor.textContent = registro[celda];
         }
         fila.append(valor)
     }
+
+    eliminar(fila);
+
+    tabla.appendChild(fila);
 }
 
-function mostrarTabla(registro) {
+function mostrarDistribuidores(registro,tabla) {
     const fila = document.createElement("tr");
     for (const celda of registro) {
         const valor = document.createElement("td")
         valor.textContent = celda;
         fila.append(valor)
     }
+
+    const td = document.createElement("td");
+    const btnEliminar = document.createElement("button");
+    td.style.backgroundColor = "rgb(255,0,0,0.7)";
+    const img = document.createElement("img");
+    img.alt = "eliminar";
+    img.src = "diseño/btnEliminar.png";
+    btnEliminar.append(img);
+    td.append(btnEliminar);
+
+    btnEliminar.addEventListener("click", function() {
+        //lógica del backend para eliminar un registro.
+    })
+
+    fila.appendChild(td);
+    tabla.append(fila)
 }
 
+async function eliminar(fila) {
+    const td = document.createElement("td");
+    const btnEliminar = document.createElement("button");
+    btnEliminar.style.width = "100%";
+    btnEliminar.style.height = "4vh";
+    btnEliminar.classList.add("btnEliminar");
+    td.style.backgroundColor = "rgb(255,0,0,0.7)";
+    const img = document.createElement("img");
+    img.alt = "eliminar";
+    img.src = "diseño/btnEliminar.png";
+    img.style.height = "4vh";
+    btnEliminar.append(img);
+    td.append(btnEliminar);
+
+    btnEliminar.addEventListener("click", function() {
+        //lógica del backend para eliminar un registro.
+    })
+
+    fila.appendChild(td);
+
+}
+function mostrarMontos(registro,tabla) {
+    const fila = document.createElement("tr");
+    for (const celda of registro) {
+        const valor = document.createElement("td")
+        valor.textContent = registro[celda];
+        if (celda === "monto") {
+            if (parceFloat(registro[celda]) >= 0) {
+                valor.classList.add("ganancia");
+            } else {
+                valor.classList.add("gasto");
+            }
+        }
+        fila.append(valor)
+    }
+
+    eliminar(fila);
+
+    tabla.append(fila)
+}
 
 // ==========================================================================
 // CONFIGURACIÓN
@@ -381,7 +530,9 @@ const botonesAgregados = [
 
         titulo: "productos",
 
-        ruta : "diseño/productos.png"
+        ruta : "diseño/productos.png",
+
+        mostrar : mostrarProductos
     },
 
     {
@@ -397,7 +548,9 @@ const botonesAgregados = [
 
         titulo: "movimientos",
 
-        ruta : "diseño/mov_stock.png"
+        ruta : "diseño/mov_stock.png",
+
+        mostrar : mostrarMontos
     },
 
     {
@@ -413,7 +566,9 @@ const botonesAgregados = [
 
         titulo: "gastos",
 
-        ruta : "diseño/gastos.png"
+        ruta : "diseño/gastos.png",
+
+        mostrar : mostrarMontos
     },
 
     {
@@ -429,7 +584,9 @@ const botonesAgregados = [
 
         titulo: "distribuidores",
 
-        ruta : "diseño/distribuidores.png"
+        ruta : "diseño/distribuidores.png",
+
+        mostrar : mostrarDistribuidores
     },
 
     {
@@ -452,6 +609,46 @@ const botonesAgregados = [
 // ==========================================================================
 // CONSTRUCCION DINÁMICA DE TABLAS
 // ==========================================================================
+
+async function recargarTabla(funcion, atributos, tabla) {
+    tabla.innerHTML = "";
+    
+    for (const atributo of atributos) {
+        const columna = document.createElement("th");
+        columna.textContent = atributo;
+        tabla.appendChild(columna);
+    }
+
+    // const respuesta = await fetch(`${url}/obtener/${id}`,
+    //     {
+    //         method: "GET",
+
+    //         headers: {
+    //             "Content-Type": "application/json"
+    //         }
+    //     }
+    // )
+
+    // const datos = await respuesta.json();
+
+    const datos = {
+        registros : [{
+            producto : "miel",
+            precio : "2500",
+            cantidad : "3",
+            distribuidor : "Mielcitas"
+        },{
+            producto : "Aritos de miel",
+            precio : "3000",
+            cantidad : "10",
+            distribuidor : "Sucaritas"
+        }] 
+    } 
+
+    for (const registro of datos.registros) {
+        mostrarProductos(registro, tabla)
+    }
+}
 
 for (const configuracion of botonesAgregados) {
 
@@ -476,32 +673,8 @@ for (const configuracion of botonesAgregados) {
         
         tabla.id = configuracion.id;
 
-        for (const atributo of configuracion.atributos) {
-            const columna = document.createElement("th");
-            columna.textContent = atributo;
-            tabla.appendChild(columna);
-        }
-
         if (configuracion.id !== btnStats) {
-            const respuesta = await fetch(`${url}/obtener/${configuracion.id}`,
-                {
-                    method: "GET",
-
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
-                }
-            )
-
-            const datos = await respuesta.json();
-
-            for (const registro of datos.registros) {
-                if (configuracion.id === "tablaProductos") {
-                    mostrarProductos(registro)
-                } else {
-                    mostrarTabla(registro)
-                }
-            }
+            await recargarTabla(configuracion.mostrar, configuracion.atributos, tabla)
         }
         
         tablaActual.appendChild(tabla);

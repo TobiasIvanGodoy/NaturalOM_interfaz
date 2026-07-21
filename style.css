@@ -133,6 +133,19 @@ button:hover {
     object-fit: contain; 
 }
 
+.btnEliminar {
+    height: 100%;
+    aspect-ratio: 1;
+    border: none;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.btnEliminar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; 
+}
+
 .btnAgregar {
     background-color: lightcyan;
     border-radius: 2vh;
@@ -227,6 +240,14 @@ table th {
 
 table td {
     background-color: white;
+}
+
+.celda {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 4vw;
 }
 
 /* Estados de filas/celdas */

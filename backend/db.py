@@ -62,7 +62,15 @@ def tablaProductos():
     pass
 
 def tablaMovStock():
-    pass
+
+    conexion = sqlite3.connect(ruta)
+    consulta = pd.read_sql_query(conexion, """
+                SELECT categoria, producto, cantidad, monto, fecha, hora
+                FROM movimientos
+    """)
+
+    return consulta
+
 
 def tablaGastos():
     pass
