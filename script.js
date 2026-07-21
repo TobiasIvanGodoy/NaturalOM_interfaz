@@ -402,12 +402,12 @@ function mostrarProductos(registro, tabla) {
             const div = document.createElement("div")
             div.classList.add("celda")
 
-            const btnMenos = construirBtn("btnMenos", registro["producto"], "diseño/btnMenos.png","Cantidad que se vendío...");
+            const btnMenos = construirBtn("restar", registro["producto"], "diseño/btnMenos.png","Cantidad que se vendío...");
 
             const p = document.createElement("p");
             p.textContent = registro[celda];
 
-            const btnMas = construirBtn("btnMas", registro["producto"], "diseño/btnMas.png", "Cantidad que entra...");
+            const btnMas = construirBtn("sumar", registro["producto"], "diseño/btnMas.png", "Cantidad que entra...");
 
             const elementos = [btnMenos, p, btnMas];
 
@@ -424,7 +424,7 @@ function mostrarProductos(registro, tabla) {
             const p = document.createElement("p");
             p.textContent = registro[celda];
 
-            const btnEditar = construirBtn("btnEditar", registro["producto"], "diseño/btnEditar.png", "Nuevo precio...")
+            const btnEditar = construirBtn("precio", registro["producto"], "diseño/btnEditar.png", "Nuevo precio...")
 
             const elementos = [p, btnEditar];
 
@@ -447,26 +447,23 @@ function mostrarProductos(registro, tabla) {
 
 function mostrarDistribuidores(registro,tabla) {
     const fila = document.createElement("tr");
-    for (const celda of registro) {
-        const valor = document.createElement("td")
-        valor.textContent = celda;
-        fila.append(valor)
+    for (const celda in registro) {
+        if (celda === "pagina") {
+            const td = document.createElement("td")
+            const a = document.createElement("a")
+            a.href = registro[celda];
+            a.textContent = registro[celda];
+            td.append(a)
+            fila.append(td)
+        } else {
+            const valor = document.createElement("td")
+            valor.textContent = registro[celda];
+            fila.append(valor)
+        }
     }
 
-    const td = document.createElement("td");
-    const btnEliminar = document.createElement("button");
-    td.style.backgroundColor = "rgb(255,0,0,0.7)";
-    const img = document.createElement("img");
-    img.alt = "eliminar";
-    img.src = "diseño/btnEliminar.png";
-    btnEliminar.append(img);
-    td.append(btnEliminar);
+    eliminar(fila);
 
-    btnEliminar.addEventListener("click", function() {
-        //lógica del backend para eliminar un registro.
-    })
-
-    fila.appendChild(td);
     tabla.append(fila)
 }
 
@@ -491,15 +488,20 @@ async function eliminar(fila) {
     fila.appendChild(td);
 
 }
+
 function mostrarMontos(registro,tabla) {
     const fila = document.createElement("tr");
-    for (const celda of registro) {
-        const valor = document.createElement("td")
+
+    for (const celda in registro) {
+        let valor = document.createElement("td")
         valor.textContent = registro[celda];
         if (celda === "monto") {
-            if (parceFloat(registro[celda]) >= 0) {
+            let dinero = Number(registro[celda])
+            if (dinero >= 0) {
                 valor.classList.add("ganancia");
             } else {
+                dinero = dinero * (-1);
+                valor.textContent = dinero;
                 valor.classList.add("gasto");
             }
         }
@@ -508,7 +510,7 @@ function mostrarMontos(registro,tabla) {
 
     eliminar(fila);
 
-    tabla.append(fila)
+    tabla.appendChild(fila);
 }
 
 // ==========================================================================
@@ -633,20 +635,18 @@ async function recargarTabla(funcion, atributos, tabla) {
 
     const datos = {
         registros : [{
-            producto : "miel",
-            precio : "2500",
-            cantidad : "3",
-            distribuidor : "Mielcitas"
+            distribuidor : "Youtube",
+            direccion : "Av. Cordoba 1203, cdad BsAs",
+            pagina : "https://www.youtube.com/feed/subscriptions"
         },{
-            producto : "Aritos de miel",
-            precio : "3000",
-            cantidad : "10",
-            distribuidor : "Sucaritas"
+            distribuidor : "Google",
+            direccion : "Av. 9 de julio 1030, cdad BsAs",
+            pagina : "https://www.google.com/"
         }] 
     } 
 
     for (const registro of datos.registros) {
-        mostrarProductos(registro, tabla)
+        mostrarDistribuidores(registro, tabla)
     }
 }
 
