@@ -141,13 +141,19 @@ for (const configuracion of botonesAgregados) {
         for (const otraConfiguracion of botonesAgregados) {
             if (configuracion.boton !== otraConfiguracion.boton) {
                 otraConfiguracion.boton.innerHTML = "";
+                otraConfiguracion.boton.style.backgroundColor = "white";
                 const img = document.createElement("img");
                 img.alt = otraConfiguracion.titulo;
                 img.src = otraConfiguracion.ruta;
                 otraConfiguracion.boton.appendChild(img)
             }
+            else {
+            configuracion.boton.textContent = configuracion.titulo;
+            configuracion.boton.style.backgroundColor = "rgba(144, 238, 144, 0.6)"
+            configuracion.boton.style.borderRadius = "1vh";
+            }
         }
-        configuracion.boton.textContent = configuracion.titulo;
+
 
         const tabla = document.createElement("table");
         
