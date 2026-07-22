@@ -1,5 +1,6 @@
 `Tareas restantes: 
 Reformular el boton de eliminar.
+agrega requisitos a los inputs.
 Que los botones de confirmar envien los registros al backend.
 definir e implementar todas las funciones del backend.
 conectar y recibir las tablas correspondientes.
@@ -18,77 +19,20 @@ const seccionActual = document.getElementById("seccionActual");
 const saldo = document.getElementById("saldo");
 const overlay = document.getElementById("overlay");
 
-// constructor dinámico
+async function mostrarbalance() {
+    const saldo = document.getElementById("saldo")
 
-for (const configuracion of botonesAgregados) {
-
-    configuracion.boton.addEventListener("click", async function () {
-        configuracion.boton.innerHTML = "";
-        const tablaActual = document.createElement("div");
-        tablaActual.id = "tablaActual";
-        tablaActual.classList.add("contenedorTabla");
-
-        for (const otraConfiguracion of botonesAgregados) {
-            if (configuracion.boton !== otraConfiguracion.boton) {
-                otraConfiguracion.boton.innerHTML = "";
-                const img = document.createElement("img");
-                img.alt = otraConfiguracion.titulo;
-                img.src = otraConfiguracion.ruta;
-                otraConfiguracion.boton.appendChild(img)
-            }
-        }
-        configuracion.boton.textContent = configuracion.titulo;
-
-        const tabla = document.createElement("table");
-        
-        tabla.id = configuracion.id;
-
-        if (configuracion.id !== btnStats) {
-            await recargarTabla(configuracion.mostrar, configuracion.atributos, tabla)
-        }
-        
-        tablaActual.appendChild(tabla);
-        seccionActual.innerHTML = "";
-        seccionActual.appendChild(tablaActual);
-
-        const boton = document.createElement("button");
-        boton.textContent = configuracion.agregar;
-        boton.classList.add("btnAgregar");
-
-        boton.addEventListener("click", function(){
-            overlay.innerHTML = "";
-            overlay.classList.remove("oculto");
-            configuracion.modificarOverlay();
-        })
-
-        seccionActual.appendChild(boton);
-    })
-}
-
-async function recargarTabla(funcion, atributos, tabla) {
-    tabla.innerHTML = "";
-    
-    for (const atributo of atributos) {
-        const columna = document.createElement("th");
-        columna.textContent = atributo;
-        tabla.appendChild(columna);
-    }
-
-    const respuesta = await fetch(`${url}/obtener/${id}`,
-        {
-            method: "GET",
-
+    const respuesta = await fetch(`${url}/balance`, 
+        {method: "GET",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type" : "application/json"
             }
         }
     )
 
-    const datos = await respuesta.json();
+    const datos = await respuesta.json()
 
-    for (const registro of datos.registros) {
-        funcion(registro, tabla)
-    }
+    saldo.textContent = datos.balance 
 }
 
 // configuraciones 
@@ -182,6 +126,81 @@ const botonesAgregados = [
         ruta : "diseño/estadisticas.png"
     }
 ];
+
+// constructor dinámico
+
+for (const configuracion of botonesAgregados) {
+    mostrarbalance()
+
+    configuracion.boton.addEventListener("click", async function () {
+        configuracion.boton.innerHTML = "";
+        const tablaActual = document.createElement("div");
+        tablaActual.id = "tablaActual";
+        tablaActual.classList.add("contenedorTabla");
+
+        for (const otraConfiguracion of botonesAgregados) {
+            if (configuracion.boton !== otraConfiguracion.boton) {
+                otraConfiguracion.boton.innerHTML = "";
+                const img = document.createElement("img");
+                img.alt = otraConfiguracion.titulo;
+                img.src = otraConfiguracion.ruta;
+                otraConfiguracion.boton.appendChild(img)
+            }
+        }
+        configuracion.boton.textContent = configuracion.titulo;
+
+        const tabla = document.createElement("table");
+        
+        tabla.id = configuracion.id;
+
+        if (configuracion.id !== btnStats) {
+            await recargarTabla(configuracion.mostrar, configuracion.atributos, tabla, configuracion.id)
+        }
+        
+        tablaActual.appendChild(tabla);
+        seccionActual.innerHTML = "";
+        seccionActual.appendChild(tablaActual);
+
+        const boton = document.createElement("button");
+        boton.textContent = configuracion.agregar;
+        boton.classList.add("btnAgregar");
+
+        boton.addEventListener("click", function(){
+            overlay.innerHTML = "";
+            overlay.classList.remove("oculto");
+            configuracion.modificarOverlay();
+        })
+
+        seccionActual.appendChild(boton);
+    })
+}
+
+async function recargarTabla(funcion, atributos, tabla, id) {
+    tabla.innerHTML = "";
+    
+    for (const atributo of atributos) {
+        const columna = document.createElement("th");
+        columna.textContent = atributo;
+        tabla.appendChild(columna);
+    }
+
+    const respuesta = await fetch(`${url}/obtener/${id}`,
+        {
+            method: "GET",
+
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }
+    )
+
+    const datos = await respuesta.json();
+
+    for (const registro of datos.registros) {
+        funcion(registro, tabla)
+    }
+}
+
 
 // Productos
 
@@ -336,7 +355,7 @@ function mostrarProductos(registro, tabla) {
         fila.append(valor)
     }
 
-    eliminar(fila, registro["producto"]);
+    //eliminar(fila, registro["producto"]);
 
     tabla.appendChild(fila);
 }
@@ -508,7 +527,7 @@ function mostrarMontos(registro,tabla) {
         fila.append(valor)
     }
 
-    eliminar(fila, registro["producto"]);
+    //eliminar(fila, registro["producto"]);
 
     tabla.appendChild(fila);
 }
@@ -598,8 +617,10 @@ async function enviarDistribuidor(contenedor) {
     )
     const datos = await respuesta.json();
 
+    const tabla = document.getElementById("tablaDistribuidores")
+     
     if (datos.estado === "ok") {
-        recargarTabla();
+        recargarTabla(mostrarDistribuidores, botonesAgregados[3].atributos, tabla, botonesAgregados[3].id);
         overlay.classList.add("oculto")
     } else {
         const mensaje = document.createElement("p");
@@ -666,7 +687,7 @@ function mostrarDistribuidores(registro,tabla) {
         }
     }
 
-    eliminar(fila, registro["nombre"]);
+    //eliminar(fila, registro["nombre"]);
 
     tabla.append(fila)
 }

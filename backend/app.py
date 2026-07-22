@@ -1,9 +1,10 @@
 from flask import Flask, request
 from flask_cors import CORS
 import os
-from db import tablaProductos,tablaDistribuidores, tablaGastos, tablaMovStock, crear_base
+from db import tablaProductos,tablaDistribuidores, tablaGastos, tablaMovStock, crear_base, registrarDistribuidor, balance
 
 app = Flask(__name__)
+app.json.sort_keys = False
 CORS(app)
 
 crear_base()
@@ -30,8 +31,28 @@ tablas = {
 @app.route("/obtener/<tabla>", methods=["GET"])
 def devolverTabla(tabla):
     return {"estado" : "ok",
-            "tabla" : tablas[tabla]()}
+            "registros" : tablas[tabla]()}
 
+@app.route("/enviarDistribuidor", methods=["POST"])
+def guardarDistribuidor():
+    datos = request.get_json()
+
+    nombre = datos["nombre"]
+    direccion = datos["direccion"]
+    pagina = datos["pagina"]
+
+    if registrarDistribuidor(nombre, direccion, pagina):
+        return {
+            "estado" : "ok"
+        } 
+    else:
+        return {
+            "estado" : "error"
+        }
+
+@app.route("/balance", methods= ["GET"])
+def obtenerBalance():
+    return {"balance" : balance()}
 
 
 if __name__ == "__main__":
