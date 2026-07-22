@@ -17,6 +17,7 @@ const btnStats = document.getElementById("btnStats");
 
 const seccionActual = document.getElementById("seccionActual");
 const saldo = document.getElementById("saldo");
+saldo.style.fontSize = "2vh";
 const overlay = document.getElementById("overlay");
 
 async function mostrarbalance() {
@@ -32,8 +33,10 @@ async function mostrarbalance() {
 
     const datos = await respuesta.json()
 
-    saldo.textContent = datos.balance 
+    saldo.textContent = `$${datos.balance}`
 }
+
+mostrarbalance()
 
 // configuraciones 
 const botonesAgregados = [
@@ -130,7 +133,7 @@ const botonesAgregados = [
 // constructor dinámico
 
 for (const configuracion of botonesAgregados) {
-    mostrarbalance()
+
 
     configuracion.boton.addEventListener("click", async function () {
         configuracion.boton.innerHTML = "";
@@ -404,7 +407,7 @@ function construirBtn(tipo, producto, imagen, placeholder) {
     return boton
 }
 
-async function eliminar(fila, producto) {
+async function eliminar(fila, elemento, atributo, tabla, mostrar) {
     const td = document.createElement("td");
     const btnEliminar = document.createElement("button");
     btnEliminar.style.width = "100%";
@@ -414,7 +417,7 @@ async function eliminar(fila, producto) {
     const img = document.createElement("img");
     img.alt = "eliminar";
     img.src = "diseño/btnEliminar.png";
-    img.style.height = "4vh";
+    img.style.height = "3vh";
     btnEliminar.append(img);
     td.append(btnEliminar);
 
@@ -433,7 +436,7 @@ async function eliminar(fila, producto) {
         btnConfirmar.textContent = "Sí, eliminar"
         contenedor.appendChild(btnConfirmar)
         btnConfirmar.addEventListener("click", function (){
-            operar(elimnar, producto);
+            operar("eliminar", elemento, tabla, atributo);
         })
     })
 
@@ -441,13 +444,31 @@ async function eliminar(fila, producto) {
 
 }
 
-async function operar(operacion, producto) {
+async function operar(operacion, elemento, tabla, atributo) {
     if (operacion === "btnMenos") {
 
     } else if (operacion === "btnMas") {
         
-    } else {
+    } else if (operacion === "eliminar") {
+        const respuesta = await fetch(
+            `${url}/eliminar`,
+            {method: "DELETE",
+            headers: {
+                "Content-Type" : "application/json"
+            },
+            body : JSON.stringify({
+                parametro: atributo,
+                elem : elemento,
+                tabla: tabla
+            })
+            }
+        )
 
+        const datos = await respuesta.json()
+
+        if (datos.estado === "ok"){
+            overlay.classList.remove("oculto");
+        }
     }
 }
 // reponer stock
@@ -608,34 +629,53 @@ async function enviarDistribuidor(contenedor) {
     const inputDireccion = document.getElementById("dirección")
     const inputPagina = document.getElementById("página_web")
 
-    const respuesta = await fetch(
-        `${url}/enviarDistribuidor`,
-            {method: "POST",
-            headers: {
-                "Content-Type" : "application/json"
-            },
-            body: JSON.stringify({
-                nombre : inputNombre.value,
-                direccion : inputDireccion.value,
-                pagina : inputPagina.value
-            })
-        }  
-    )
-    const datos = await respuesta.json();
+    if (inputNombre.value && inputDireccion.value && inputPagina.value) {
 
-    const tabla = document.getElementById("tablaDistribuidores")
-     
-    if (datos.estado === "ok") {
-        recargarTabla(mostrarDistribuidores, botonesAgregados[3].atributos, tabla, botonesAgregados[3].id);
-        overlay.classList.add("oculto")
+        const respuesta = await fetch(
+            `${url}/enviarDistribuidor`,
+                {method: "POST",
+                headers: {
+                    "Content-Type" : "application/json"
+                },
+                body: JSON.stringify({
+                    nombre : inputNombre.value,
+                    direccion : inputDireccion.value,
+                    pagina : inputPagina.value
+                })
+            }  
+        )
+        const datos = await respuesta.json();
+
+        const tabla = document.getElementById("tablaDistribuidores")
+        
+        if (datos.estado === "ok") {
+            recargarTabla(mostrarDistribuidores, botonesAgregados[3].atributos, tabla, botonesAgregados[3].id);
+            overlay.classList.add("oculto")
+        } else {
+            const mensaje = document.createElement("p");
+            mensaje.classList.add("info")
+            mensaje.textContent = "Ya registrado";
+            contenedor.appendChild(mensaje)
+            inputNombre.value = "";
+            inputDireccion.value ="";
+            inputPagina.value="";
+            setTimeout(() => {
+                mensaje.textContent = "";
+                mensaje.style.display = "none";
+            }, 2000)
+        }
     } else {
         const mensaje = document.createElement("p");
-        mensaje.classList.add("gasto")
-        mensaje.textContent = "Error al registrar";
-        contenedor.appendChild(mensaje)
-        inputNombre.value = "";
-        inputDireccion.value ="";
-        inputPagina.value="";
+            mensaje.classList.add("info")
+            mensaje.textContent = "No se permiten campos vacios";
+            contenedor.appendChild(mensaje)
+            inputNombre.value = "";
+            inputDireccion.value ="";
+            inputPagina.value="";
+            setTimeout(() => {
+                mensaje.textContent = "";
+                mensaje.style.display = "none";
+            }, 2000)
     }
 }
 
@@ -693,7 +733,7 @@ function mostrarDistribuidores(registro,tabla) {
         }
     }
 
-    //eliminar(fila, registro["nombre"]);
+    eliminar(fila, registro["nombre"], "nombre", "distribuidores");
 
     tabla.append(fila)
 }

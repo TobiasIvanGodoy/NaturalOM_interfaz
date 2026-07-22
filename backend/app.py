@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 import os
-from db import tablaProductos,tablaDistribuidores, tablaGastos, tablaMovStock, crear_base, registrarDistribuidor, balance
+from db import tablaProductos,tablaDistribuidores, tablaGastos, tablaMovStock, crear_base, registrarDistribuidor, balance, eliminar
 
 app = Flask(__name__)
 app.json.sort_keys = False
@@ -53,6 +53,20 @@ def guardarDistribuidor():
 @app.route("/balance", methods= ["GET"])
 def obtenerBalance():
     return {"balance" : balance()}
+
+@app.route("/eliminar", methods=["DELETE"])
+def eliminarElem():
+
+    datos  = request.get_json()
+
+    parametro = datos["parametro"]
+    elem = datos["elem"]
+    tabla = datos["tabla"]
+
+    if eliminar(parametro, elem, tabla):
+        return {"estado" : "ok"}
+    else: 
+        {"estado" : "error"}
 
 
 if __name__ == "__main__":

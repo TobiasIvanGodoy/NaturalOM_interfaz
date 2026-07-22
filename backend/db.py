@@ -121,11 +121,17 @@ def tablaDistribuidores():
                 SELECT * FROM distribuidores
     """, conexion)
 
-    for index, row in consulta.iterrows():
-        actual = {}
-        actual["nombre"] = row["nombre"]
-        actual["direccion"] = row["direccion"]
-        actual["pagina"] = row["pagina"]
-        res.append(actual)
+    conexion.close()
 
-    return res
+    return consulta.to_dict(orient="records")
+
+def eliminar(parametro, elem, tabla):
+    conexion = sqlite3.connect(ruta)
+    cursor = conexion.cursor()
+    print(f"DELETE FROM {tabla} WHERE {parametro} = ?")
+
+    cursor.execute(f"DELETE FROM {tabla} WHERE {parametro}=?",(elem,))
+
+    conexion.commit()
+
+    return True
