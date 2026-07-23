@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 import os
-from db import tablaProductos,tablaDistribuidores, tablaGastos, tablaMovStock, crear_base, registrarDistribuidor, balance, eliminar
+from db import tablaProductos,tablaDistribuidores, tablaGastos, tablaMovStock, crear_base, registrarDistribuidor, balance, eliminar, operar
 
 app = Flask(__name__)
 app.json.sort_keys = False
@@ -66,8 +66,22 @@ def eliminarElem():
     if eliminar(parametro, elem, tabla):
         return {"estado" : "ok"}
     else: 
-        {"estado" : "error"}
+        return {"estado" : "error"}
 
+@app.route("/operar", methods=["UPDATE"])
+def actualizarCant():
+
+    datos = request.get_json()
+
+    parametro = datos["parametro"]
+    elem = datos["elem"]
+    tabla = datos["tabla"]
+    cant = datos["cant"]
+
+    if operar(parametro, elem, tabla, cant):
+        return {"estado" : "ok"}
+    else:
+        return {"estado" : "error"}
 
 if __name__ == "__main__":
     app.run(

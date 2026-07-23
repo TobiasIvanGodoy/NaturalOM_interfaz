@@ -2,7 +2,7 @@ import sqlite3
 import pandas as pd
 from werkzeug import security
 from pathlib import Path
-import time
+from datetime import datetime
 
 BASE_DIR = Path(__file__).resolve().parent
 ruta = BASE_DIR / "naturalOM.db"
@@ -128,10 +128,31 @@ def tablaDistribuidores():
 def eliminar(parametro, elem, tabla):
     conexion = sqlite3.connect(ruta)
     cursor = conexion.cursor()
-    print(f"DELETE FROM {tabla} WHERE {parametro} = ?")
 
     cursor.execute(f"DELETE FROM {tabla} WHERE {parametro}=?",(elem,))
 
     conexion.commit()
 
     return True
+
+def operar(parametro, elem, tabla, cant):
+    conexion = sqlite3.connect(ruta)
+
+    cursor = conexion.cursor()
+
+    cursor.execute(f"UPDATE {tabla} SET cantidad = cantidad+? WHERE {parametro} = ?", (cant, elem))
+
+    if cant <= 0:
+        ahora = datetime.now()
+        fecha = ahora.date()
+        hora = ahora.time()
+        cant_vendida = cant*(-1)
+        precio = pd.read_sql_query("SELECT precio FROM productos WHERE producto =?", conexion, params=(elem,))["precio"].iloc[0]
+        monto_total = precio*(cant_vendida)
+
+        cursor.execute(f"INSERT INTO movimientos(fecha, hora, categoria, producto, cantidad, monto) VALUES (?,?,?,?,?,?)",(fecha, hora, "venta", elem, cant_vendida, monto_total))
+
+    conexion.commit()
+
+    return True
+
