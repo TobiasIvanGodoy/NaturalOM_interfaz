@@ -436,7 +436,7 @@ async function eliminar(fila, elemento, atributo, tabla, mostrar) {
         btnConfirmar.textContent = "Sí, eliminar"
         contenedor.appendChild(btnConfirmar)
         btnConfirmar.addEventListener("click", function (){
-            operar("eliminar", elemento, tabla, atributo);
+            operar("eliminar", "DELETE", elemento, tabla, atributo);
         })
     })
 
@@ -444,32 +444,28 @@ async function eliminar(fila, elemento, atributo, tabla, mostrar) {
 
 }
 
-async function operar(operacion, elemento, tabla, atributo) {
-    if (operacion === "btnMenos") {
-
-    } else if (operacion === "btnMas") {
-        
-    } else if (operacion === "eliminar") {
-        const respuesta = await fetch(
-            `${url}/eliminar`,
-            {method: "DELETE",
-            headers: {
-                "Content-Type" : "application/json"
-            },
-            body : JSON.stringify({
-                parametro: atributo,
-                elem : elemento,
-                tabla: tabla
-            })
-            }
-        )
-
-        const datos = await respuesta.json()
-
-        if (datos.estado === "ok"){
-            overlay.classList.remove("oculto");
+async function operar(operacion, metodo, elemento, tabla, atributo) {
+    
+    const respuesta = await fetch(
+        `${url}/${operacion}`,
+        {method: metodo,
+        headers: {
+            "Content-Type" : "application/json"
+        },
+        body : JSON.stringify({
+            parametro: atributo,
+            elem : elemento,
+            tabla: tabla
+        })
         }
+    )
+
+    const datos = await respuesta.json()
+
+    if (datos.estado === "ok"){
+        overlay.classList.remove("oculto");
     }
+    
 }
 // reponer stock
 
