@@ -1,13 +1,17 @@
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 from flask_cors import CORS
 import os
 from db import obtenerTabla, crear_base, registrarDistribuidor, registrarGasto, registrarProducto, registrarMovimiento, balance, eliminar, operar, buscarOpciones, cambiarPrecio
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="NaturalOM_interfaz")
 app.json.sort_keys = False
 CORS(app)
 
 crear_base()
+
+@app.route("/")
+def index():
+    return send_from_directory("NaturalOM_interfaz", "index.html")
 
 #Mostrar
 
@@ -126,7 +130,7 @@ def modElem(modificacion):
         else: 
             return {"estado" : "error"}
 
-@app.route("/eliminar", methods=["DELETE"])
+@app.route("/modificar/eliminar", methods=["DELETE"])
 def eliminarElem():
 
     datos  = request.get_json()

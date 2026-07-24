@@ -152,7 +152,7 @@ for (const configuracion of botonesAgregados) {
         tabla.id = configuracion.id;
 
         if (configuracion.boton !== btnStats) {
-            await recargarTabla(configuracion.mostrar, configuracion.atributos, tabla, configuracion.titulo)
+            await recargarTabla(configuracion.atributos, tabla, configuracion.titulo)
         }
         
         tablaActual.appendChild(tabla);
@@ -166,14 +166,14 @@ for (const configuracion of botonesAgregados) {
         boton.addEventListener("click", function(){
             overlay.innerHTML = "";
             overlay.classList.remove("oculto");
-            configuracion.modificarOverlay();
+            configuracion.modificarOverlay(configuracion.atributos, tabla, configuracion.titulo);
         })
 
         seccionActual.appendChild(boton);
     })
 }
 
-async function recargarTabla(funcion, atributos, tabla, titulo) {
+async function recargarTabla(atributos, tabla, titulo) {
     tabla.innerHTML = "";
     
     for (const atributo of atributos) {
@@ -309,11 +309,11 @@ function mostrar(registro, tabla, titulo, atributos) {
     }
 
     if (titulo === "productos") {
-        eliminar(fila,registro["producto"], "producto", titulo)
+        eliminar(fila,registro["producto"], "producto", titulo, atributos, tabla)
     } else if (titulo === "distribuidores") {
-        eliminar(fila,registro["distribuidor"], "distribuidor", titulo)
+        eliminar(fila,registro["distribuidor"], "distribuidor", titulo, atributos, tabla)
     } else {
-        eliminar(fila,[registro["fecha"], registro["hora"]], ["fecha","hora"], titulo)
+        eliminar(fila,[registro["fecha"], registro["hora"]], ["fecha","hora"], titulo, atributos, tabla)
     } 
 
     tabla.appendChild(fila);
@@ -362,7 +362,7 @@ function construirBtn(tipo, producto, imagen, placeholder, atributo) {
     return boton
 }
 
-async function eliminar(fila, elemento, atributo, tabla) {
+async function eliminar(fila, elemento, atributo, tabla, atributos, tablaActual) {
     const td = document.createElement("td");
     const btnEliminar = document.createElement("button");
     btnEliminar.style.width = "100%";
@@ -392,6 +392,8 @@ async function eliminar(fila, elemento, atributo, tabla) {
         contenedor.appendChild(btnConfirmar)
         btnConfirmar.addEventListener("click", function (){
             operar("eliminar", "DELETE", elemento, tabla, atributo, 0);
+            
+            recargarTabla(atributos, tablaActual, tabla)
         })
     })
 
@@ -486,7 +488,7 @@ async function enviarProductos(contenedor) {
     }
 }
 
-async function nuevoProducto() {
+async function nuevoProducto(atributos, tabla, titulo) {
 
     const contenedor = document.createElement("div");
     contenedor.classList.add("contenedorMenu");
@@ -552,6 +554,7 @@ async function nuevoProducto() {
     btnConfirmar.addEventListener("click", function (){
         overlay.classList.add("oculto")
         enviarProductos(contenedor)
+        recargarTabla(atributos, tabla, titulo)
     })
 
 }
@@ -593,7 +596,7 @@ async function enviarMovimiento(contenedor) {
     }
 }
 
-async function nuevoMovimiento() {
+async function nuevoMovimiento(atributos, tabla, titulo) {
     
     const contenedor = document.createElement("div");
     contenedor.classList.add("contenedorMenu");
@@ -654,6 +657,7 @@ async function nuevoMovimiento() {
     contenedor.appendChild(btnConfirmar)
     btnConfirmar.addEventListener("click", function (){
         enviarMovimiento(contenedor);
+        recargarTabla(atributos, tabla, titulo)
     })
 
 }
@@ -720,7 +724,7 @@ async function enviarGasto(contenedor) {
     }
 }
 
-async function nuevoGasto() {
+async function nuevoGasto(atributos, tabla, titulo) {
     
     const contenedor = document.createElement("div");
     contenedor.classList.add("contenedorMenu");
@@ -782,6 +786,7 @@ async function nuevoGasto() {
     contenedor.appendChild(btnConfirmar)
     btnConfirmar.addEventListener("click", function (){
         enviarGasto(contenedor)
+        recargarTabla(atributos, tabla, titulo)
     })
 
 }
@@ -835,7 +840,7 @@ async function enviarDistribuidor(contenedor) {
     }
 }
 
-function nuevoDistribuidor() {
+function nuevoDistribuidor(atributos, tabla, titulo) {
     
     const contenedor = document.createElement("div");
     contenedor.classList.add("contenedorMenu");
@@ -868,11 +873,12 @@ function nuevoDistribuidor() {
     contenedor.appendChild(btnConfirmar)
     btnConfirmar.addEventListener("click", function (){
         enviarDistribuidor(contenedor);
+        recargarTabla(atributos, tabla, titulo)
     })
 
 }
 
-function nuevoGraficos() {
+function nuevoGraficos(atributos, tabla, titulo) {
     //solo un placeholder para tener algo.
     const contenedor = document.createElement("div");
     contenedor.classList.add("contenedorMenu");
