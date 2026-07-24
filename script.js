@@ -1,10 +1,15 @@
-`Tareas restantes: 
-Reformular el boton de eliminar.
+`Tareas restantes:
 agrega requisitos a los inputs.
+    - productos 
+    - movimientos
 Que los botones de confirmar envien los registros al backend.
+    -productos
+    -movimientos
+    -gastos
 definir e implementar todas las funciones del backend.
-conectar y recibir las tablas correspondientes.
-modularizar.
+    -productos
+    -movimientos
+modularizar.(siempre se puede modularizar más)
 `
 
 const url = "http://localhost:5000"
