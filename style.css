@@ -189,7 +189,7 @@ button:hover {
 }
 
 #logo {
-    width: clamp(500px, 70%, 600px);
+    width: clamp(100px, 20%, 400px);
     aspect-ratio: 1;
 
     border-radius: 50vw;
