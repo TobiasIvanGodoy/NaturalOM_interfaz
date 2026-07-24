@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 import os
-from db import tablaProductos,tablaDistribuidores, tablaGastos, tablaMovStock, crear_base, registrarDistribuidor, balance, eliminar, operar
+from db import obtenerTabla, crear_base, registrarDistribuidor, balance, eliminar, operar, buscarOpciones
 
 app = Flask(__name__)
 app.json.sort_keys = False
@@ -21,17 +21,10 @@ def accion():
     return {"estado" : "ok"}
 """
 
-tablas = {
-    "tablaProductos" : tablaProductos,
-    "tablaMoviStock" : tablaMovStock,
-    "tablaGastos" : tablaGastos,
-    "tablaDistribuidores" : tablaDistribuidores
-}
-
 @app.route("/obtener/<tabla>", methods=["GET"])
 def devolverTabla(tabla):
     return {"estado" : "ok",
-            "registros" : tablas[tabla]()}
+            "registros" : obtenerTabla(tabla)}
 
 @app.route("/enviarDistribuidor", methods=["POST"])
 def guardarDistribuidor():
@@ -82,6 +75,20 @@ def actualizarCant():
         return {"estado" : "ok"}
     else:
         return {"estado" : "error"}
+
+@app.route("/buscar", methods=["POST"])
+def buscar():
+
+    datos = request.get_json()
+
+    tabla = datos["tabla"]
+    atributo = datos["atributo"]
+
+    return {
+        "estado" : "ok",
+        "opciones" : buscarOpciones(tabla, atributo)
+    }
+
 
 if __name__ == "__main__":
     app.run(

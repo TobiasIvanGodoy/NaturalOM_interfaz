@@ -84,18 +84,6 @@ def registrarDistribuidor(nombre, direccion, pagina):
     finally:
         conexion.close()
 
-def tablaProductos():
-    pass
-
-def tablaMovStock():
-
-    conexion = sqlite3.connect(ruta)
-    consulta = pd.read_sql_query("""
-                SELECT * FROM movimientos
-    """, conexion)
-
-    return consulta
-
 def balance():
     conexion = sqlite3.connect(ruta)
     cursor = conexion.cursor()
@@ -110,16 +98,10 @@ def balance():
 
     return movimientos + gastos
 
-def tablaGastos():
-    pass
-
-def tablaDistribuidores():
-
-    res = []
+def obtenerTabla(tabla):
+    
     conexion = sqlite3.connect(ruta)
-    consulta = pd.read_sql_query("""
-                SELECT * FROM distribuidores
-    """, conexion)
+    consulta = pd.read_sql_query(f"SELECT * FROM {tabla}", conexion)
 
     conexion.close()
 
@@ -129,7 +111,11 @@ def eliminar(parametro, elem, tabla):
     conexion = sqlite3.connect(ruta)
     cursor = conexion.cursor()
 
-    cursor.execute(f"DELETE FROM {tabla} WHERE {parametro}=?",(elem,))
+    if isinstance(elem, list):
+        cursor.execute(f"DELETE FROM {tabla} WHERE {parametro[0]}=? AND {parametro[1]}=?",(elem[0],elem[1]))
+        
+    else:
+        cursor.execute(f"DELETE FROM {tabla} WHERE {parametro}=?",(elem,))
 
     conexion.commit()
 
@@ -155,4 +141,12 @@ def operar(parametro, elem, tabla, cant):
     conexion.commit()
 
     return True
+
+def buscarOpciones(tabla, atributo):
+
+    conexion = sqlite3.connect(ruta)
+    df = pd.read_sql_query(f"SELECT {atributo} FROM {tabla}", conexion)
+    conexion.close()
+    res = df[atributo].tolist()
+    return res
 
