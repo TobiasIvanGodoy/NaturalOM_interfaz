@@ -15,7 +15,7 @@ def crear_base():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS distribuidores(
-        nombre TEXT PRIMARY KEY,
+        distribuidor TEXT PRIMARY KEY,
         direccion TEXT NOT NULL,
         pagina TEXT NOT NULL
         )
@@ -58,7 +58,7 @@ def crear_base():
     conexion.commit()
     conexion.close()
 
-def registrarDistribuidor(nombre, direccion, pagina):
+def registrarDistribuidor(distribuidor, direccion, pagina):
     conexion = sqlite3.connect(ruta)
     cursor = conexion.cursor()    
 
@@ -66,10 +66,10 @@ def registrarDistribuidor(nombre, direccion, pagina):
     
         cursor.execute(
             """
-            INSERT INTO distribuidores(nombre, direccion, pagina)
+            INSERT INTO distribuidores(distribuidor, direccion, pagina)
             VALUES (?, ?, ?)
             """,
-            (str(nombre), str(direccion), str(pagina))
+            (str(distribuidor), str(direccion), str(pagina))
         )
 
         conexion.commit()
@@ -89,7 +89,7 @@ def registrarGasto(categoria, monto):
 
     try:
         ahora = datetime.now()
-        fecha = ahora.date()
+        fecha = ahora.date().strftime("%d-%m-%y")
         hora = ahora.time()
         cursor.execute(
             """
@@ -110,6 +110,56 @@ def registrarGasto(categoria, monto):
     finally:
         conexion.close()
 
+def registrarProducto(producto, precio, cantidad, distribuidor):
+    conexion = sqlite3.connect(ruta)
+    cursor = conexion.cursor()    
+
+    try:
+        cursor.execute(
+            """
+            INSERT INTO productos(producto, precio, cantidad, distribuidor)
+            VALUES (?, ?, ?, ?)
+            """,
+            (str(producto), int(precio), int(cantidad), str(distribuidor))
+        )
+
+        conexion.commit()
+
+        return True
+    
+    except sqlite3.IntegrityError:
+    
+        return False
+    
+    finally:
+        conexion.close()
+
+def registrarMovimiento(producto, cantidad , monto):
+    conexion = sqlite3.connect(ruta)
+    cursor = conexion.cursor()    
+
+    try:
+        ahora = datetime.now()
+        fecha = ahora.date().strftime("%d-%m-%y")
+        hora = ahora.time()
+        cursor.execute(
+            """
+            INSERT INTO movimientos(categoria, producto, cantidad, monto, fecha, hora)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            ("reponer", str(producto), int(cantidad), float(monto)*(-1), str(fecha), str(hora))
+        )
+
+        conexion.commit()
+
+        return True
+    
+    except sqlite3.IntegrityError:
+    
+        return False
+    
+    finally:
+        conexion.close()
 def balance():
     conexion = sqlite3.connect(ruta)
     cursor = conexion.cursor()
@@ -148,21 +198,35 @@ def eliminar(parametro, elem, tabla):
     return True
 
 def operar(parametro, elem, tabla, cant):
+
+
     conexion = sqlite3.connect(ruta)
 
     cursor = conexion.cursor()
 
-    cursor.execute(f"UPDATE {tabla} SET cantidad = cantidad+? WHERE {parametro} = ?", (cant, elem))
+    cursor.execute(f"UPDATE {tabla} SET cantidad = cantidad+({cant}) WHERE {parametro} = ?", (elem,))
 
     if cant <= 0:
         ahora = datetime.now()
-        fecha = ahora.date()
+        fecha = ahora.date().strftime("%d-%m-%y")
         hora = ahora.time()
         cant_vendida = cant*(-1)
         precio = pd.read_sql_query("SELECT precio FROM productos WHERE producto =?", conexion, params=(elem,))["precio"].iloc[0]
         monto_total = precio*(cant_vendida)
 
-        cursor.execute(f"INSERT INTO movimientos(fecha, hora, categoria, producto, cantidad, monto) VALUES (?,?,?,?,?,?)",(fecha, hora, "venta", elem, cant_vendida, monto_total))
+        cursor.execute(f"INSERT INTO movimientos(fecha, hora, categoria, producto, cantidad, monto) VALUES (?,?,?,?,?,?)",(str(fecha), str(hora), "venta", elem, cant_vendida, monto_total))
+
+    conexion.commit()
+
+    return True
+
+def cambiarPrecio(parametro, elem, tabla, precioNuevo):
+    conexion = sqlite3.connect(ruta)
+
+    cursor = conexion.cursor()
+
+    cursor.execute(f"UPDATE {tabla} SET precio = ? WHERE {parametro} = ?", (precioNuevo, elem))
+
 
     conexion.commit()
 

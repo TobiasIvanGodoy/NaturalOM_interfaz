@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 import os
-from db import obtenerTabla, crear_base, registrarDistribuidor, registrarGasto, balance, eliminar, operar, buscarOpciones
+from db import obtenerTabla, crear_base, registrarDistribuidor, registrarGasto, registrarProducto, registrarMovimiento, balance, eliminar, operar, buscarOpciones, cambiarPrecio
 
 app = Flask(__name__)
 app.json.sort_keys = False
@@ -9,32 +9,41 @@ CORS(app)
 
 crear_base()
 
-"""
-@app.route("/url", methods=["metodo"])
-def accion():
-    datos = request.get_json()
-
-    producto = datos["producto"]
-
-    ---- conexión con la base de datos ----
-
-    return {"estado" : "ok"}
-"""
+#Mostrar
 
 @app.route("/obtener/<tabla>", methods=["GET"])
 def devolverTabla(tabla):
     return {"estado" : "ok",
             "registros" : obtenerTabla(tabla)}
 
+@app.route("/balance", methods= ["GET"])
+def obtenerBalance():
+    return {"balance" : balance()}
+
+@app.route("/buscar", methods=["POST"])
+def buscar():
+
+    datos = request.get_json()
+
+    tabla = datos["tabla"]
+    atributo = datos["atributo"]
+
+    return {
+        "estado" : "ok",
+        "opciones" : buscarOpciones(tabla, atributo)
+    }
+
+#Guardar 
+
 @app.route("/enviarDistribuidor", methods=["POST"])
 def guardarDistribuidor():
     datos = request.get_json()
 
-    nombre = datos["nombre"]
+    distribuidor = datos["distribuidor"]
     direccion = datos["direccion"]
     pagina = datos["pagina"]
 
-    if registrarDistribuidor(nombre, direccion, pagina):
+    if registrarDistribuidor(distribuidor, direccion, pagina):
         return {
             "estado" : "ok"
         } 
@@ -59,9 +68,63 @@ def guardarGasto():
             "estado" : "error"
         }
 
-@app.route("/balance", methods= ["GET"])
-def obtenerBalance():
-    return {"balance" : balance()}
+@app.route("/enviarProductos", methods=["POST"])
+def guardarProducto():
+    datos = request.get_json()
+
+    producto = datos["producto"]
+    precio = datos["precio"]
+    cantidad = datos["cantidad"]
+    distribuidor = datos["distribuidor"]
+
+    if registrarProducto(producto, precio, cantidad, distribuidor):
+        return {
+                "estado" : "ok"
+            } 
+    else:
+        return {
+            "estado" : "error"
+        }
+
+@app.route("/enviarMovimiento", methods=["POST"])
+def guardarMovimiento():
+    datos = request.get_json()
+
+    producto = datos["producto"]
+    cantidad = datos["cantidad"]
+    monto = datos["monto"]
+
+    if registrarMovimiento(producto, cantidad, monto):
+        return {
+                "estado" : "ok"
+            } 
+    else:
+        return {
+            "estado" : "error"
+        }
+
+#Modificar
+
+@app.route("/modificar/<modificacion>", methods=["PATCH"])
+def modElem(modificacion): 
+    datos  = request.get_json()
+
+    parametro = datos["parametro"]
+    elem = datos["elem"]
+    tabla = datos["tabla"]
+    cant = datos["cant"]
+
+    if (modificacion == "restar" or modificacion == "sumar"):
+        if operar(parametro, elem, tabla, cant):
+            return {"estado" : "ok"}
+        else: 
+            return {"estado" : "error"}
+        
+    elif (modificacion == "precio"):
+        if cambiarPrecio(parametro, elem, tabla, cant):
+            return {"estado" : "ok"}
+        else: 
+            return {"estado" : "error"}
 
 @app.route("/eliminar", methods=["DELETE"])
 def eliminarElem():
@@ -91,20 +154,6 @@ def actualizarCant():
         return {"estado" : "ok"}
     else:
         return {"estado" : "error"}
-
-@app.route("/buscar", methods=["POST"])
-def buscar():
-
-    datos = request.get_json()
-
-    tabla = datos["tabla"]
-    atributo = datos["atributo"]
-
-    return {
-        "estado" : "ok",
-        "opciones" : buscarOpciones(tabla, atributo)
-    }
-
 
 if __name__ == "__main__":
     app.run(

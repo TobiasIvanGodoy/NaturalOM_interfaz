@@ -1,14 +1,5 @@
 `Tareas restantes:
-agrega requisitos a los inputs.
-    - productos 
-    - movimientos
-Que los botones de confirmar envien los registros al backend.
-    -productos
-    -movimientos
-    -gastos
-definir e implementar todas las funciones del backend.
-    -productos
-    -movimientos
+Todo el tema de graficos y dataScience
 modularizar.(siempre se puede modularizar más)
 `
 
@@ -65,7 +56,7 @@ const botonesAgregados = [
     {
         boton: btnMovStock,
 
-        atributos: ["categoria", "producto", "cantidad", "monto", "fecha", "hora"],
+        atributos: ["fecha", "hora", "categoria", "producto", "cantidad", "monto"],
 
         agregar: "Reponer stock",
 
@@ -81,7 +72,7 @@ const botonesAgregados = [
     {
         boton: btnGastos,
 
-        atributos: ["categoria", "monto", "fecha", "hora"],
+        atributos: ["fecha", "hora", "categoria", "monto"],
 
         agregar: "Añadir gasto",
 
@@ -99,7 +90,7 @@ const botonesAgregados = [
     {
         boton: btnDistribuidores,
 
-        atributos: ["nombre", "direccion", "pagina"],
+        atributos: ["distribuidor", "direccion", "pagina"],
 
         agregar: "Agregar distribuidor",
 
@@ -255,7 +246,7 @@ function mostrar(registro, tabla, titulo, atributos) {
     
     for (const atributo of atributos) {
         let valor = document.createElement("td")
-        if (atributo === "cantidad") {
+        if (atributo === "cantidad" && titulo === "productos") {
             const div = document.createElement("div")
             div.classList.add("celda")
 
@@ -281,9 +272,11 @@ function mostrar(registro, tabla, titulo, atributos) {
             const p = document.createElement("p");
             p.textContent = registro[atributo];
 
+            const vacio = document.createElement("p")
+
             const btnEditar = construirBtn("precio", registro["producto"], "diseño/btnEditar.png", "Nuevo precio...", atributo)
 
-            const elementos = [p, btnEditar];
+            const elementos = [vacio, p, btnEditar];
 
             for (const elem of elementos) {
                 div.append(elem);
@@ -295,6 +288,7 @@ function mostrar(registro, tabla, titulo, atributos) {
             let dinero = Number(registro[atributo])
             if (dinero >= 0) {
                 valor.classList.add("ganancia");
+                valor.textContent = dinero
             } else {
                 dinero = dinero * (-1);
                 valor.textContent = dinero;
@@ -317,7 +311,7 @@ function mostrar(registro, tabla, titulo, atributos) {
     if (titulo === "productos") {
         eliminar(fila,registro["producto"], "producto", titulo)
     } else if (titulo === "distribuidores") {
-        eliminar(fila,registro["nombre"], "nombre", titulo)
+        eliminar(fila,registro["distribuidor"], "distribuidor", titulo)
     } else {
         eliminar(fila,[registro["fecha"], registro["hora"]], ["fecha","hora"], titulo)
     } 
@@ -357,8 +351,12 @@ function construirBtn(tipo, producto, imagen, placeholder, atributo) {
         btnConfirmar.textContent = "Confirmar"
         contenedor.appendChild(btnConfirmar)
         btnConfirmar.addEventListener("click", function (){
-            const cant = document.getElementById(tipo).value
-            operar(tipo, "PATCH", producto, "productos", atributo, cant);
+            let cant = Number(document.getElementById(tipo).value)
+
+            if (tipo === "restar") {
+                cant = cant * (-1)
+            }
+            operar(tipo, "PATCH", producto, "productos", "producto", cant);
         })
     })
     return boton
@@ -404,7 +402,7 @@ async function eliminar(fila, elemento, atributo, tabla) {
 async function operar(operacion, metodo, elemento, tabla, atributo, cant) {
     
     const respuesta = await fetch(
-        `${url}/${operacion}`,
+        `${url}/modificar/${operacion}`,
         {method: metodo,
         headers: {
             "Content-Type" : "application/json"
@@ -449,8 +447,46 @@ async function buscarOpciones(tabla, atributo) {
 }
 // Especificas
 
+async function enviarProductos(contenedor) {
+    const inputProducto = document.getElementById("producto").value
+    const inputCantidad = document.getElementById("cantidad").value
+    const inputPrecio = document.getElementById("precio").value
+    const inputDistribuidores = document.getElementById("distribuidores").value
 
-function nuevoProducto() {
+    if (inputProducto && inputCantidad && inputPrecio && inputDistribuidores) {
+        const respuesta = await fetch(
+            `${url}/enviarProductos`,
+            {method: "POST",
+                headers: {
+                    "Content-Type" : "application/json"
+                },
+                body: JSON.stringify({
+                    producto : inputProducto,
+                    precio : inputPrecio,
+                    cantidad : inputCantidad,
+                    distribuidor : inputDistribuidores
+                })
+            }
+        )
+        const datos = await respuesta.json();
+        
+        if (datos.estado === "ok") {
+            overlay.classList.add("oculto")
+        } 
+    }
+    else {
+        const mensaje = document.createElement("p");
+        mensaje.classList.add("info")
+        mensaje.textContent = "No se permiten campos vacios";
+        contenedor.appendChild(mensaje)
+            setTimeout(() => {
+                mensaje.textContent = "";
+                mensaje.style.display = "none";
+            }, 2000)
+    }
+}
+
+async function nuevoProducto() {
 
     const contenedor = document.createElement("div");
     contenedor.classList.add("contenedorMenu");
@@ -497,7 +533,14 @@ function nuevoProducto() {
     select.append(ph);
 
 
-    //lógica del backend para buscar los distribuidores registrados
+    const opciones = await buscarOpciones("distribuidores", "distribuidor")
+
+    for (const opcion of opciones) {
+            const categoria = document.createElement("option");
+            categoria.textContent = opcion;
+            categoria.value = opcion;
+            select.append(categoria);
+    }
 
     campo.append(label, select);
     contenedor.appendChild(campo)
@@ -508,15 +551,49 @@ function nuevoProducto() {
     contenedor.appendChild(btnConfirmar)
     btnConfirmar.addEventListener("click", function (){
         overlay.classList.add("oculto")
-        //logica de guardado en el backend
+        enviarProductos(contenedor)
     })
 
 }
 
-async function enviarMovimiento() {
+async function enviarMovimiento(contenedor) {
+    const inputProducto = document.getElementById("producto").value
+    const inputCantidad = document.getElementById("cantidad").value
+    const inputMonto = document.getElementById("monto").value
+
+    if (inputProducto && inputCantidad && inputMonto) {
+        const respuesta = await fetch(
+            `${url}/enviarMovimiento`,
+            {method: "POST",
+                headers: {
+                    "Content-Type" : "application/json"
+                },
+                body: JSON.stringify({
+                    producto : inputProducto,
+                    cantidad : inputCantidad,
+                    monto : inputMonto
+                })
+            }
+        )
+        const datos = await respuesta.json();
+        
+        if (datos.estado === "ok") {
+            overlay.classList.add("oculto")
+        } 
+    }
+    else {
+        const mensaje = document.createElement("p");
+        mensaje.classList.add("info")
+        mensaje.textContent = "No se permiten campos vacios";
+        contenedor.appendChild(mensaje)
+            setTimeout(() => {
+                mensaje.textContent = "";
+                mensaje.style.display = "none";
+            }, 2000)
+    }
 }
 
-function nuevoMovimiento() {
+async function nuevoMovimiento() {
     
     const contenedor = document.createElement("div");
     contenedor.classList.add("contenedorMenu");
@@ -544,7 +621,14 @@ function nuevoMovimiento() {
 
     select.append(ph);
 
-    //lógica del backend para buscar los productos guardados
+    const opciones = await buscarOpciones("productos", "producto")
+
+    for (const opcion of opciones) {
+            const categoria = document.createElement("option");
+            categoria.textContent = opcion;
+            categoria.value = opcion;
+            select.append(categoria);
+    }
 
     campo.append(label, select);
     contenedor.appendChild(campo)
@@ -569,18 +653,17 @@ function nuevoMovimiento() {
     btnConfirmar.textContent = "Confirmar"
     contenedor.appendChild(btnConfirmar)
     btnConfirmar.addEventListener("click", function (){
-        overlay.classList.add("oculto")
-        enviarMovimiento();
+        enviarMovimiento(contenedor);
     })
 
 }
 
 async function enviarGasto(contenedor) {
-    const inputCategoria = document.getElementById("categoria")
-    const inputOtro = document.getElementById("otra")
-    const inputMonto = document.getElementById("monto")
+    const inputCategoria = document.getElementById("categoria").value
+    const inputOtro = document.getElementById("otra").value
+    const inputMonto = document.getElementById("monto").value
 
-    if ((inputCategoria.value !== "") && inputMonto.value && (inputOtro.value === "")) {
+    if ((inputCategoria !== "") && inputMonto&& (inputOtro === "")) {
         const respuesta = await fetch(
             `${url}/enviarGasto`,
                 {method: "POST",
@@ -588,8 +671,8 @@ async function enviarGasto(contenedor) {
                     "Content-Type" : "application/json"
                 },
                 body: JSON.stringify({
-                    categoria : inputCategoria.value,
-                    monto : inputMonto.value,
+                    categoria : inputCategoria,
+                    monto : inputMonto,
                 })
             }  
         )
@@ -598,7 +681,7 @@ async function enviarGasto(contenedor) {
         if (datos.estado === "ok") {
             overlay.classList.add("oculto")
         }
-    } else if ((inputCategoria.value === "") && inputMonto.value && (inputOtro.value !== "")) {
+    } else if ((inputCategoria === "") && inputMonto && (inputOtro !== "")) {
         const respuesta = await fetch(
             `${url}/enviarGasto`,
                 {method: "POST",
@@ -606,8 +689,8 @@ async function enviarGasto(contenedor) {
                     "Content-Type" : "application/json"
                 },
                 body: JSON.stringify({
-                    categoria : inputOtro.value,
-                    monto : inputMonto.value,
+                    categoria : inputOtro,
+                    monto : inputMonto,
                 })
             }  
         )
@@ -616,26 +699,27 @@ async function enviarGasto(contenedor) {
         if (datos.estado === "ok") {
             overlay.classList.add("oculto")
         }
-    } else if ((inputCategoria.value !== "") && (inputOtro.value !== "")){
+    } else if ((inputCategoria !== "") && (inputOtro !== "")){
         const mensaje = document.createElement("p");
-            mensaje.classList.add("info")
-            mensaje.textContent = "Una categoria a la vez";
-            contenedor.appendChild(mensaje)
+        mensaje.classList.add("info")
+        mensaje.textContent = "Una categoria a la vez";
+        contenedor.appendChild(mensaje)
             setTimeout(() => {
                 mensaje.textContent = "";
                 mensaje.style.display = "none";
             }, 2000)
     }  else {
         const mensaje = document.createElement("p");
-            mensaje.classList.add("info")
-            mensaje.textContent = "No se permiten campos vacios";
-            contenedor.appendChild(mensaje)
+        mensaje.classList.add("info")
+        mensaje.textContent = "No se permiten campos vacios";
+        contenedor.appendChild(mensaje)
             setTimeout(() => {
                 mensaje.textContent = "";
                 mensaje.style.display = "none";
             }, 2000)
     }
 }
+
 async function nuevoGasto() {
     
     const contenedor = document.createElement("div");
@@ -703,11 +787,11 @@ async function nuevoGasto() {
 }
 
 async function enviarDistribuidor(contenedor) {
-    const inputNombre = document.getElementById("nombre")
-    const inputDireccion = document.getElementById("dirección")
-    const inputPagina = document.getElementById("página")
+    const inputDistribuidor = document.getElementById("distribuidor").value
+    const inputDireccion = document.getElementById("dirección").value
+    const inputPagina = document.getElementById("página").value
 
-    if (inputNombre.value && inputDireccion.value) {
+    if (inputDistribuidor && inputDireccion) {
 
         const respuesta = await fetch(
             `${url}/enviarDistribuidor`,
@@ -716,9 +800,9 @@ async function enviarDistribuidor(contenedor) {
                     "Content-Type" : "application/json"
                 },
                 body: JSON.stringify({
-                    nombre : inputNombre.value,
-                    direccion : inputDireccion.value,
-                    pagina : inputPagina.value
+                    distribuidor : inputDistribuidor,
+                    direccion : inputDireccion,
+                    pagina : inputPagina
                 })
             }  
         )
@@ -731,7 +815,7 @@ async function enviarDistribuidor(contenedor) {
             mensaje.classList.add("info")
             mensaje.textContent = "Ya registrado";
             contenedor.appendChild(mensaje)
-            inputNombre.value = "";
+            inputDistribuidor.value = "";
             inputDireccion.value ="";
             inputPagina.value="";
             setTimeout(() => {
@@ -741,9 +825,9 @@ async function enviarDistribuidor(contenedor) {
         }
     } else {
         const mensaje = document.createElement("p");
-            mensaje.classList.add("info")
-            mensaje.textContent = "No se permiten campos vacios";
-            contenedor.appendChild(mensaje)
+        mensaje.classList.add("info")
+        mensaje.textContent = "No se permiten campos vacios";
+        contenedor.appendChild(mensaje)
             setTimeout(() => {
                 mensaje.textContent = "";
                 mensaje.style.display = "none";
@@ -760,7 +844,7 @@ function nuevoDistribuidor() {
     crearBtnCerrar(contenedor);
 
     const inputs = [
-            {id: "nombre",
+            {id: "distribuidor",
             tipo: "text",
             placeholder : "Nombre del distribuidor..."
             },
