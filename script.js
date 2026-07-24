@@ -358,6 +358,7 @@ function construirBtn(tipo, producto, imagen, placeholder, atributo) {
                 cant = cant * (-1)
             }
             operar(tipo, "PATCH", producto, "productos", "producto", cant);
+            recargarTabla(botonesAgregados[0].atributos, document.getElementById("tablaProductos"), "productos")
         })
     })
     return boton
