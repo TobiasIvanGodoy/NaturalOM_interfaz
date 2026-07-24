@@ -198,6 +198,7 @@ async function recargarTabla(atributos, tabla, titulo) {
     for (const registro of datos.registros) {
         mostrar(registro, tabla, titulo, atributos)
     }
+    mostrarbalance()
 }
 
 function crearBtnCerrar(contenedor) {
