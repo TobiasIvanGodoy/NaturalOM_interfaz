@@ -12,7 +12,7 @@ definir e implementar todas las funciones del backend.
 modularizar.(siempre se puede modularizar más)
 `
 
-const url = "http://localhost:5000"
+const url = "http://localHost:5000"
 
 const btnProducto = document.getElementById("btnProducto");
 const btnMovStock = document.getElementById("btnMovStock");
@@ -49,7 +49,7 @@ const botonesAgregados = [
     {
         boton: btnProducto,
 
-        atributos: ["Producto", "Precio", "Cantidad", "Distribuidor"],
+        atributos: ["producto", "precio", "cantidad", "distribuidor"],
 
         agregar: "Nuevo producto",
 
@@ -65,7 +65,7 @@ const botonesAgregados = [
     {
         boton: btnMovStock,
 
-        atributos: ["Categoria", "Producto", "Cantidad", "Monto", "Fecha", "Hora"],
+        atributos: ["categoria", "producto", "cantidad", "monto", "fecha", "hora"],
 
         agregar: "Reponer stock",
 
@@ -81,7 +81,7 @@ const botonesAgregados = [
     {
         boton: btnGastos,
 
-        atributos: ["Categoria", "Monto", "Fecha", "Hora"],
+        atributos: ["categoria", "monto", "fecha", "hora"],
 
         agregar: "Añadir gasto",
 
@@ -99,7 +99,7 @@ const botonesAgregados = [
     {
         boton: btnDistribuidores,
 
-        atributos: ["Nombre", "Dirección", "Página"],
+        atributos: ["nombre", "direccion", "pagina"],
 
         agregar: "Agregar distribuidor",
 
@@ -202,9 +202,10 @@ async function recargarTabla(funcion, atributos, tabla, titulo) {
     )
 
     const datos = await respuesta.json();
+    console.log("Registros recibidos:", datos.registros)
 
     for (const registro of datos.registros) {
-        mostrar(registro, tabla, titulo)
+        mostrar(registro, tabla, titulo, atributos)
     }
 }
 
@@ -249,21 +250,21 @@ function crearCampo(entrada, contenedor) {
     contenedor.appendChild(campo);
 }
 
-function mostrar(registro, tabla, titulo) {
+function mostrar(registro, tabla, titulo, atributos) {
     const fila = document.createElement("tr");
     
-    for (const celda in registro) {
+    for (const atributo of atributos) {
         let valor = document.createElement("td")
-        if (celda === "cantidad") {
+        if (atributo === "cantidad") {
             const div = document.createElement("div")
             div.classList.add("celda")
 
-            const btnMenos = construirBtn("restar", registro["producto"], "diseño/btnMenos.png","Cantidad que se vendío...");
+            const btnMenos = construirBtn("restar", registro["producto"], "diseño/btnMenos.png","Cantidad que se vendío...", atributo);
 
             const p = document.createElement("p");
-            p.textContent = registro[celda];
+            p.textContent = registro[atributo];
 
-            const btnMas = construirBtn("sumar", registro["producto"], "diseño/btnMas.png", "Cantidad que entra...");
+            const btnMas = construirBtn("sumar", registro["producto"], "diseño/btnMas.png", "Cantidad que entra...", atributo)
 
             const elementos = [btnMenos, p, btnMas];
 
@@ -272,15 +273,15 @@ function mostrar(registro, tabla, titulo) {
             }
 
             valor.append(div)
-        } else if (celda === "precio") {
+        } else if (atributo === "precio") {
 
             const div = document.createElement("div")
             div.classList.add("celda")
 
             const p = document.createElement("p");
-            p.textContent = registro[celda];
+            p.textContent = registro[atributo];
 
-            const btnEditar = construirBtn("precio", registro["producto"], "diseño/btnEditar.png", "Nuevo precio...")
+            const btnEditar = construirBtn("precio", registro["producto"], "diseño/btnEditar.png", "Nuevo precio...", atributo)
 
             const elementos = [p, btnEditar];
 
@@ -290,8 +291,8 @@ function mostrar(registro, tabla, titulo) {
 
             valor.append(div)
 
-        } else  if (celda === "monto") {
-            let dinero = Number(registro[celda])
+        } else  if (atributo === "monto") {
+            let dinero = Number(registro[atributo])
             if (dinero >= 0) {
                 valor.classList.add("ganancia");
             } else {
@@ -299,14 +300,16 @@ function mostrar(registro, tabla, titulo) {
                 valor.textContent = dinero;
                 valor.classList.add("gasto");
             }
-        } else if (celda === "pagina") {
+        } else if (atributo === "pagina") {
             const a = document.createElement("a")
-            a.href = registro[celda];
-            a.textContent = registro[celda];
+            a.href = registro[atributo];
+            a.textContent = registro[atributo];
             valor.append(a)
             
+        } else if (atributo === "hora") {
+            valor.textContent = registro[atributo].slice(0, 5);
         } else {
-            valor.textContent = registro[celda];
+            valor.textContent = registro[atributo];
         }
         fila.append(valor)
     }
@@ -322,7 +325,7 @@ function mostrar(registro, tabla, titulo) {
     tabla.appendChild(fila);
 }
 
-function construirBtn(tipo, producto, imagen, placeholder) {
+function construirBtn(tipo, producto, imagen, placeholder, atributo) {
     const boton = document.createElement("button");
     const img = document.createElement("img");
     boton.style.backgroundColor = "rgba(0, 0, 0, 0)";
@@ -354,7 +357,8 @@ function construirBtn(tipo, producto, imagen, placeholder) {
         btnConfirmar.textContent = "Confirmar"
         contenedor.appendChild(btnConfirmar)
         btnConfirmar.addEventListener("click", function (){
-            operar(tipo, producto);
+            const cant = document.getElementById(tipo).value
+            operar(tipo, "PATCH", producto, "productos", atributo, cant);
         })
     })
     return boton
@@ -417,7 +421,7 @@ async function operar(operacion, metodo, elemento, tabla, atributo, cant) {
     const datos = await respuesta.json()
 
     if (datos.estado === "ok"){
-        overlay.classList.remove("oculto");
+        overlay.classList.add("oculto");
     }
     
 }
@@ -577,12 +581,51 @@ async function enviarGasto(contenedor) {
     const inputMonto = document.getElementById("monto")
 
     if ((inputCategoria.value !== "") && inputMonto.value && (inputOtro.value === "")) {
-        overlay.classList.add("oculto")
+        const respuesta = await fetch(
+            `${url}/enviarGasto`,
+                {method: "POST",
+                headers: {
+                    "Content-Type" : "application/json"
+                },
+                body: JSON.stringify({
+                    categoria : inputCategoria.value,
+                    monto : inputMonto.value,
+                })
+            }  
+        )
+        const datos = await respuesta.json();
 
+        if (datos.estado === "ok") {
+            overlay.classList.add("oculto")
+        }
     } else if ((inputCategoria.value === "") && inputMonto.value && (inputOtro.value !== "")) {
-        overlay.classList.add("oculto")
+        const respuesta = await fetch(
+            `${url}/enviarGasto`,
+                {method: "POST",
+                headers: {
+                    "Content-Type" : "application/json"
+                },
+                body: JSON.stringify({
+                    categoria : inputOtro.value,
+                    monto : inputMonto.value,
+                })
+            }  
+        )
+        const datos = await respuesta.json();
 
-    } else {
+        if (datos.estado === "ok") {
+            overlay.classList.add("oculto")
+        }
+    } else if ((inputCategoria.value !== "") && (inputOtro.value !== "")){
+        const mensaje = document.createElement("p");
+            mensaje.classList.add("info")
+            mensaje.textContent = "Una categoria a la vez";
+            contenedor.appendChild(mensaje)
+            setTimeout(() => {
+                mensaje.textContent = "";
+                mensaje.style.display = "none";
+            }, 2000)
+    }  else {
         const mensaje = document.createElement("p");
             mensaje.classList.add("info")
             mensaje.textContent = "No se permiten campos vacios";
@@ -591,7 +634,7 @@ async function enviarGasto(contenedor) {
                 mensaje.textContent = "";
                 mensaje.style.display = "none";
             }, 2000)
-    }  
+    }
 }
 async function nuevoGasto() {
     
@@ -680,8 +723,6 @@ async function enviarDistribuidor(contenedor) {
             }  
         )
         const datos = await respuesta.json();
-
-        const tabla = document.getElementById("tablaDistribuidores")
         
         if (datos.estado === "ok") {
             overlay.classList.add("oculto")

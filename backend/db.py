@@ -1,6 +1,5 @@
 import sqlite3
 import pandas as pd
-from werkzeug import security
 from pathlib import Path
 from datetime import datetime
 
@@ -71,6 +70,33 @@ def registrarDistribuidor(nombre, direccion, pagina):
             VALUES (?, ?, ?)
             """,
             (str(nombre), str(direccion), str(pagina))
+        )
+
+        conexion.commit()
+
+        return True
+    
+    except sqlite3.IntegrityError:
+    
+        return False
+    
+    finally:
+        conexion.close()
+
+def registrarGasto(categoria, monto):
+    conexion = sqlite3.connect(ruta)
+    cursor = conexion.cursor()    
+
+    try:
+        ahora = datetime.now()
+        fecha = ahora.date()
+        hora = ahora.time()
+        cursor.execute(
+            """
+            INSERT INTO gastos(categoria, monto, fecha, hora)
+            VALUES (?, ?, ?, ?)
+            """,
+            (str(categoria), float(monto)*(-1), str(fecha), str(hora))
         )
 
         conexion.commit()

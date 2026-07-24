@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 import os
-from db import obtenerTabla, crear_base, registrarDistribuidor, balance, eliminar, operar, buscarOpciones
+from db import obtenerTabla, crear_base, registrarDistribuidor, registrarGasto, balance, eliminar, operar, buscarOpciones
 
 app = Flask(__name__)
 app.json.sort_keys = False
@@ -38,6 +38,22 @@ def guardarDistribuidor():
         return {
             "estado" : "ok"
         } 
+    else:
+        return {
+            "estado" : "error"
+        }
+
+@app.route("/enviarGasto", methods=["POST"])
+def guardarGasto():
+    datos = request.get_json()
+
+    categoria = datos["categoria"]
+    monto = datos["monto"]
+
+    if registrarGasto(categoria, monto):
+        return {
+                "estado" : "ok"
+            } 
     else:
         return {
             "estado" : "error"
