@@ -179,9 +179,14 @@ def balance():
     return movimientos + gastos
 
 def obtenerTabla(tabla):
+
+    ordenes = {"productos" : ["producto", "ASC"],
+               "movimientos" : ["fecha", "DESC"],
+               "gastos" : ["fecha", "DESC"],
+               "distribuidores" : ["distribuidor", "ASC"]}
     
     conexion = sqlite3.connect(ruta)
-    consulta = pd.read_sql_query(f"SELECT * FROM {tabla}", conexion)
+    consulta = pd.read_sql_query(f"SELECT * FROM {tabla} ORDER BY {ordenes[tabla][0]} {ordenes[tabla][1]}", conexion)
 
     conexion.close()
 
