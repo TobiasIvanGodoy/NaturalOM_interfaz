@@ -97,8 +97,9 @@ def guardarMovimiento():
     producto = datos["producto"]
     cantidad = datos["cantidad"]
     monto = datos["monto"]
+    valor = datos["valor"]
 
-    if registrarMovimiento(producto, cantidad, monto):
+    if registrarMovimiento(producto, cantidad, monto, valor):
         return {
                 "estado" : "ok"
             } 
@@ -117,9 +118,10 @@ def modElem(modificacion):
     elem = datos["elem"]
     tabla = datos["tabla"]
     cant = datos["cant"]
+    valor = datos["valor"]
 
     if (modificacion == "restar" or modificacion == "sumar"):
-        if operar(parametro, elem, tabla, cant):
+        if operar(parametro, elem, tabla, cant, valor):
             return {"estado" : "ok"}
         else: 
             return {"estado" : "error"}

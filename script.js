@@ -346,6 +346,39 @@ function construirBtn(tipo, producto, imagen, placeholder, atributo) {
                     placeholder: placeholder}, 
                     contenedor);
 
+        let seleccionado = false;
+
+        if (tipo === "restar") {
+            
+
+            const espacio = document.createElement("div")
+            espacio.style.display = "flex";
+            espacio.style.flexDirection = "row";
+            espacio.style.alignItems = "center";
+            espacio.style.width = "100%";
+            espacio.style.gap = "1vw"
+
+            const venta = document.createElement("button");
+            venta.style.borderStyle = "solid";
+            venta.style.width = "3vh";
+            venta.style.aspectRatio = "1/1";
+            venta.textContent = " ";
+            venta.addEventListener("click", function() {
+                seleccionado = !seleccionado
+                if (seleccionado) {
+                    venta.style.backgroundColor = "rgba(144, 238, 144, 0.6)";
+                } else {
+                    venta.style.backgroundColor = "white";
+                }
+            })
+
+            const p = document.createElement("p");
+            p.textContent = "Añadir venta";
+            
+            espacio.append(venta)
+            espacio.append(p)
+            contenedor.append(espacio)
+        }
 
         const btnConfirmar = document.createElement("button");
         btnConfirmar.classList.add("btnAgregar")
@@ -357,7 +390,8 @@ function construirBtn(tipo, producto, imagen, placeholder, atributo) {
             if (tipo === "restar") {
                 cant = cant * (-1)
             }
-            operar(tipo, "PATCH", producto, "productos", "producto", cant);
+
+            operar(tipo, "PATCH", producto, "productos", "producto", cant, seleccionado);
             recargarTabla(botonesAgregados[0].atributos, document.getElementById("tablaProductos"), "productos")
         })
     })
@@ -403,7 +437,7 @@ async function eliminar(fila, elemento, atributo, tabla, atributos, tablaActual)
 
 }
 
-async function operar(operacion, metodo, elemento, tabla, atributo, cant) {
+async function operar(operacion, metodo, elemento, tabla, atributo, cant, valor) {
     
     const respuesta = await fetch(
         `${url}/modificar/${operacion}`,
@@ -415,7 +449,8 @@ async function operar(operacion, metodo, elemento, tabla, atributo, cant) {
             parametro: atributo,
             elem : elemento,
             tabla: tabla,
-            cant : cant
+            cant : cant,
+            valor : valor 
         })
         }
     )
@@ -561,7 +596,7 @@ async function nuevoProducto(atributos, tabla, titulo) {
 
 }
 
-async function enviarMovimiento(contenedor) {
+async function enviarMovimiento(contenedor, valor) {
     const inputProducto = document.getElementById("producto").value
     const inputCantidad = document.getElementById("cantidad").value
     const inputMonto = document.getElementById("monto").value
@@ -576,7 +611,8 @@ async function enviarMovimiento(contenedor) {
                 body: JSON.stringify({
                     producto : inputProducto,
                     cantidad : inputCantidad,
-                    monto : inputMonto
+                    monto : inputMonto,
+                    valor : valor
                 })
             }
         )
@@ -653,12 +689,43 @@ async function nuevoMovimiento(atributos, tabla, titulo) {
         crearCampo(i, contenedor);
     }
 
+    let seleccionado = false;
+        
+    const espacio = document.createElement("div")
+    espacio.style.display = "flex";
+    espacio.style.flexDirection = "row";
+    espacio.style.alignItems = "center";
+    espacio.style.width = "100%";
+    espacio.style.gap = "1vw"
+
+    const venta = document.createElement("button");
+    venta.style.borderStyle = "solid";
+    venta.style.width = "3vh";
+    venta.style.aspectRatio = "1/1";
+    venta.textContent = " ";
+    venta.addEventListener("click", function() {
+        seleccionado = !seleccionado
+        if (seleccionado) {
+            venta.style.backgroundColor = "rgba(144, 238, 144, 0.6)";
+        } else {
+            venta.style.backgroundColor = "white";
+        }
+    })
+
+    const p = document.createElement("p");
+    p.textContent = "Sumar en la tabla 'Productos'";
+    
+    espacio.append(venta)
+    espacio.append(p)
+    contenedor.append(espacio)
+
+
     const btnConfirmar = document.createElement("button");
     btnConfirmar.classList.add("btnAgregar")
     btnConfirmar.textContent = "Confirmar"
     contenedor.appendChild(btnConfirmar)
     btnConfirmar.addEventListener("click", function (){
-        enviarMovimiento(contenedor);
+        enviarMovimiento(contenedor, seleccionado);
         recargarTabla(atributos, tabla, titulo)
     })
 

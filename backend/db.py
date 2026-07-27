@@ -134,7 +134,7 @@ def registrarProducto(producto, precio, cantidad, distribuidor):
     finally:
         conexion.close()
 
-def registrarMovimiento(producto, cantidad , monto):
+def registrarMovimiento(producto, cantidad , monto, valor):
     conexion = sqlite3.connect(ruta)
     cursor = conexion.cursor()    
 
@@ -150,6 +150,9 @@ def registrarMovimiento(producto, cantidad , monto):
             ("reponer", str(producto), int(cantidad), float(monto)*(-1), str(fecha), str(hora))
         )
 
+        if valor == True:
+            cursor.execute(f"UPDATE productos SET cantidad = cantidad+({cantidad}) WHERE producto = ?", (producto,))
+
         conexion.commit()
 
         return True
@@ -160,6 +163,7 @@ def registrarMovimiento(producto, cantidad , monto):
     
     finally:
         conexion.close()
+
 def balance():
     conexion = sqlite3.connect(ruta)
     cursor = conexion.cursor()
@@ -197,7 +201,7 @@ def eliminar(parametro, elem, tabla):
 
     return True
 
-def operar(parametro, elem, tabla, cant):
+def operar(parametro, elem, tabla, cant, valor):
 
 
     conexion = sqlite3.connect(ruta)
@@ -206,7 +210,7 @@ def operar(parametro, elem, tabla, cant):
 
     cursor.execute(f"UPDATE {tabla} SET cantidad = cantidad+({cant}) WHERE {parametro} = ?", (elem,))
 
-    if cant <= 0:
+    if (cant <= 0) and (valor == True):
         ahora = datetime.now()
         fecha = ahora.date().strftime("%d-%m-%y")
         hora = ahora.time()
