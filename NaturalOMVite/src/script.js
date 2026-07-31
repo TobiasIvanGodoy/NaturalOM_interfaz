@@ -3,7 +3,67 @@ Todo el tema de graficos y dataScience
 modularizar.(siempre se puede modularizar más)
 `
 
-const url = "http://localHost:5000"
+import { CapacitorSQLite, SQLiteConnection } from "@capacitor-community/sqlite";
+const sqlite = new SQLiteConnection(CapacitorSQLite);
+let db;
+
+async function iniciarDB() {
+
+    await sqlite.copyFromAssets();
+    
+    db = await sqlite.createConnection(
+        "naturalOM",
+        false,
+        "no-encryption",
+        1,
+        false
+    );
+
+    await db.open();
+
+    await crear_base();
+}
+
+async function crear_base() {
+
+    await db.execute(`
+        PRAGMA foreign_keys = ON;
+
+        CREATE TABLE IF NOT EXISTS distribuidores(
+            distribuidor TEXT PRIMARY KEY,
+            direccion TEXT NOT NULL,
+            pagina TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS productos(
+            producto TEXT PRIMARY KEY,
+            precio REAL NOT NULL,
+            cantidad INTEGER NOT NULL,
+            distribuidor TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS movimientos(
+            fecha TEXT NOT NULL,
+            hora TEXT NOT NULL,
+            categoria TEXT NOT NULL,
+            producto TEXT NOT NULL,
+            cantidad INTEGER NOT NULL,
+            monto REAL NOT NULL,
+            PRIMARY KEY (fecha, hora)
+        );
+
+        CREATE TABLE IF NOT EXISTS gastos(
+            fecha TEXT NOT NULL,
+            hora TEXT NOT NULL,
+            categoria TEXT NOT NULL,
+            monto REAL NOT NULL,
+            PRIMARY KEY (fecha, hora)
+        );
+    `);
+
+}
+
+await iniciarDB();
 
 const btnProducto = document.getElementById("btnProducto");
 const btnMovStock = document.getElementById("btnMovStock");
@@ -17,19 +77,21 @@ saldo.style.fontSize = "2vh";
 const overlay = document.getElementById("overlay");
 
 async function mostrarbalance() {
-    const saldo = document.getElementById("saldo")
+    const saldo = document.getElementById("saldo");
 
-    const respuesta = await fetch(`${url}/balance`, 
-        {method: "GET",
-            headers: {
-                "Content-Type" : "application/json"
-            }
-        }
-    )
+    const movimientos = await db.query(
+        "SELECT COALESCE(SUM(monto), 0) AS total FROM movimientos"
+    );
 
-    const datos = await respuesta.json()
+    const gastos = await db.query(
+        "SELECT COALESCE(SUM(monto), 0) AS total FROM gastos"
+    );
 
-    saldo.textContent = `$${datos.balance}`
+    const balance =
+        Number(movimientos.values[0].total) +
+        Number(gastos.values[0].total);
+
+    saldo.textContent = `$${balance}`;
 }
 
 mostrarbalance()
@@ -182,23 +244,24 @@ async function recargarTabla(atributos, tabla, titulo) {
         tabla.appendChild(columna);
     }
 
-    const respuesta = await fetch(`${url}/obtener/${titulo}`,
-        {
-            method: "GET",
+    const ordenes = {
+        productos: ["producto", "ASC"],
+        movimientos: ["fecha", "DESC"],
+        gastos: ["fecha", "DESC"],
+        distribuidores: ["distribuidor", "ASC"]
+    };
 
-            headers: {
-                "Content-Type": "application/json"
-            }
-        }
-    )
+    const datos = await db.query(
+        `SELECT * FROM ${titulo} ORDER BY ${ordenes[titulo][0]} ${ordenes[titulo][1]}`
+    );
 
-    const datos = await respuesta.json();
-    console.log("Registros recibidos:", datos.registros)
+    console.log("Registros recibidos:", datos.values);
 
-    for (const registro of datos.registros) {
-        mostrar(registro, tabla, titulo, atributos)
+    for (const registro of datos.values) {
+        mostrar(registro, tabla, titulo, atributos);
     }
-    mostrarbalance()
+
+    mostrarbalance();
 }
 
 function crearBtnCerrar(contenedor) {
@@ -384,15 +447,19 @@ function construirBtn(tipo, producto, imagen, placeholder, atributo) {
         btnConfirmar.classList.add("btnAgregar")
         btnConfirmar.textContent = "Confirmar"
         contenedor.appendChild(btnConfirmar)
-        btnConfirmar.addEventListener("click", function (){
+        btnConfirmar.addEventListener("click", async function (){
             let cant = Number(document.getElementById(tipo).value)
 
             if (tipo === "restar") {
                 cant = cant * (-1)
             }
 
-            operar(tipo, "PATCH", producto, "productos", "producto", cant, seleccionado);
-            recargarTabla(botonesAgregados[0].atributos, document.getElementById("tablaProductos"), "productos")
+            if (tipo === "precio") {
+                cambiarPrecio("producto", producto, "productos", cant)
+            } else {
+                operar("producto", producto, "productos", cant, seleccionado);
+            }
+            await recargarTabla(botonesAgregados[0].atributos, document.getElementById("tablaProductos"), "productos")
         })
     })
     return boton
@@ -426,10 +493,10 @@ async function eliminar(fila, elemento, atributo, tabla, atributos, tablaActual)
         btnConfirmar.style.backgroundColor = "red";
         btnConfirmar.textContent = "Sí, eliminar"
         contenedor.appendChild(btnConfirmar)
-        btnConfirmar.addEventListener("click", function (){
-            operar("eliminar", "DELETE", elemento, tabla, atributo, 0);
+        btnConfirmar.addEventListener("click", async function (){
+            eliminarElem(atributo, elemento, tabla);
             
-            recargarTabla(atributos, tablaActual, tabla)
+            await recargarTabla(atributos, tablaActual, tabla)
         })
     })
 
@@ -437,91 +504,145 @@ async function eliminar(fila, elemento, atributo, tabla, atributos, tablaActual)
 
 }
 
-async function operar(operacion, metodo, elemento, tabla, atributo, cant, valor) {
-    
-    const respuesta = await fetch(
-        `${url}/modificar/${operacion}`,
-        {method: metodo,
-        headers: {
-            "Content-Type" : "application/json"
-        },
-        body : JSON.stringify({
-            parametro: atributo,
-            elem : elemento,
-            tabla: tabla,
-            cant : cant,
-            valor : valor 
-        })
-        }
-    )
+async function operar(parametro, elem, tabla, cant, valor) {
 
-    const datos = await respuesta.json()
+    await db.run(
+        `UPDATE ${tabla} SET cantidad = cantidad + ? WHERE ${parametro} = ?`,
+        [cant, elem]
+    );
 
-    if (datos.estado === "ok"){
-        overlay.classList.add("oculto");
+    if (cant <= 0 && valor === true) {
+
+        const fecha = obtenerFecha();
+        const hora = obtenerHora();
+
+        const precio = await db.query(
+            "SELECT precio FROM productos WHERE producto = ?",
+            [elem]
+        );
+
+        const precioProducto = precio.values[0].precio;
+        const cantVendida = -cant;
+        const montoTotal = precioProducto * cantVendida;
+
+        await db.run(
+            `INSERT INTO movimientos
+            (fecha, hora, categoria, producto, cantidad, monto)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+            [fecha, hora, "venta", elem, cantVendida, montoTotal]
+        );
     }
-    
+
+    overlay.classList.add("oculto");
+}
+
+async function cambiarPrecio(parametro, elem, tabla, precioNuevo) {
+
+    await db.run(
+        `UPDATE ${tabla} SET precio = ? WHERE ${parametro} = ?`,
+        [precioNuevo, elem]
+    );
+
+    overlay.classList.add("oculto");
+}
+
+async function eliminarElem(parametro, elem, tabla) {
+
+    console.log("TABLA:", tabla);
+    console.log("PARAMETRO:", parametro);
+    console.log("ELEM:", elem);
+    console.log("ES ARRAY:", Array.isArray(elem));
+
+    if (Array.isArray(elem)) {
+
+        await db.run(
+            `DELETE FROM ${tabla} WHERE ${parametro[0]} = ? AND ${parametro[1]} = ?`,
+            [elem[0], elem[1]]
+        );
+
+    } else {
+
+        await db.run(
+            `DELETE FROM ${tabla} WHERE ${parametro} = ?`,
+            [elem]
+        );
+    }
+
+    overlay.classList.add("oculto");
 }
 
 async function buscarOpciones(tabla, atributo) {
 
-    const respuesta = await fetch(
-        `${url}/buscar`,
-        {method: "POST",
-        headers: {
-            "Content-Type" : "application/json"
-        },
-        body : JSON.stringify({
-            tabla: tabla,
-            atributo: atributo
-        })
-        }
-    )
+    const resultado = await db.query(
+        `SELECT ${atributo} FROM ${tabla} ORDER BY ${atributo} ASC`
+    );
 
-    const datos = await respuesta.json()
+    return resultado.values.map(registro => registro[atributo]);
+}
 
-    if (datos.estado === "ok") {
-        return datos.opciones
-    }
+function obtenerFecha() {
+    const ahora = new Date();
+
+    const dia = String(ahora.getDate()).padStart(2, "0");
+    const mes = String(ahora.getMonth() + 1).padStart(2, "0");
+    const anio = String(ahora.getFullYear()).slice(-2);
+
+    return `${dia}-${mes}-${anio}`;
+}
+
+function obtenerHora() {
+    const ahora = new Date();
+
+    const h = String(ahora.getHours()).padStart(2, "0");
+    const m = String(ahora.getMinutes()).padStart(2, "0");
+    const s = String(ahora.getSeconds()).padStart(2, "0");
+
+    return `${h}:${m}:${s}`;
 }
 // Especificas
 
 async function enviarProductos(contenedor) {
-    const inputProducto = document.getElementById("producto").value
-    const inputCantidad = document.getElementById("cantidad").value
-    const inputPrecio = document.getElementById("precio").value
-    const inputDistribuidores = document.getElementById("distribuidores").value
+    const inputProducto = document.getElementById("producto").value;
+    const inputCantidad = document.getElementById("cantidad").value;
+    const inputPrecio = document.getElementById("precio").value;
+    const inputDistribuidores = document.getElementById("distribuidores").value;
 
     if (inputProducto && inputCantidad && inputPrecio && inputDistribuidores) {
-        const respuesta = await fetch(
-            `${url}/enviarProductos`,
-            {method: "POST",
-                headers: {
-                    "Content-Type" : "application/json"
-                },
-                body: JSON.stringify({
-                    producto : inputProducto,
-                    precio : inputPrecio,
-                    cantidad : inputCantidad,
-                    distribuidor : inputDistribuidores
-                })
-            }
-        )
-        const datos = await respuesta.json();
-        
-        if (datos.estado === "ok") {
-            overlay.classList.add("oculto")
-        } 
-    }
-    else {
+
+        try {
+
+            await db.run(
+                `INSERT INTO productos
+                (producto, precio, cantidad, distribuidor)
+                VALUES (?, ?, ?, ?)`,
+                [
+                    inputProducto,
+                    Number(inputPrecio),
+                    Number(inputCantidad),
+                    inputDistribuidores
+                ]
+            );
+
+            overlay.classList.add("oculto");
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+
+    } else {
+
         const mensaje = document.createElement("p");
-        mensaje.classList.add("info")
+        mensaje.classList.add("info");
         mensaje.textContent = "No se permiten campos vacios";
-        contenedor.appendChild(mensaje)
-            setTimeout(() => {
-                mensaje.textContent = "";
-                mensaje.style.display = "none";
-            }, 2000)
+        contenedor.appendChild(mensaje);
+
+        setTimeout(() => {
+            mensaje.textContent = "";
+            mensaje.style.display = "none";
+        }, 2000);
+
     }
 }
 
@@ -588,50 +709,70 @@ async function nuevoProducto(atributos, tabla, titulo) {
     btnConfirmar.classList.add("btnAgregar")
     btnConfirmar.textContent = "Confirmar"
     contenedor.appendChild(btnConfirmar)
-    btnConfirmar.addEventListener("click", function (){
+    btnConfirmar.addEventListener("click", async function (){
         overlay.classList.add("oculto")
         enviarProductos(contenedor)
-        recargarTabla(atributos, tabla, titulo)
+        await recargarTabla(atributos, tabla, titulo)
     })
 
 }
 
 async function enviarMovimiento(contenedor, valor) {
-    const inputProducto = document.getElementById("producto").value
-    const inputCantidad = document.getElementById("cantidad").value
-    const inputMonto = document.getElementById("monto").value
+
+    const inputProducto = document.getElementById("producto").value;
+    const inputCantidad = Number(document.getElementById("cantidad").value);
+    const inputMonto = Number(document.getElementById("monto").value);
 
     if (inputProducto && inputCantidad && inputMonto) {
-        const respuesta = await fetch(
-            `${url}/enviarMovimiento`,
-            {method: "POST",
-                headers: {
-                    "Content-Type" : "application/json"
-                },
-                body: JSON.stringify({
-                    producto : inputProducto,
-                    cantidad : inputCantidad,
-                    monto : inputMonto,
-                    valor : valor
-                })
+
+        try {
+
+            const fecha = obtenerFecha();
+            const hora = obtenerHora();
+
+            await db.run(
+                `INSERT INTO movimientos
+                (fecha, hora, categoria, producto, cantidad, monto)
+                VALUES (?, ?, ?, ?, ?, ?)`,
+                [
+                    fecha,
+                    hora,
+                    "reponer",
+                    inputProducto,
+                    inputCantidad,
+                    (inputMonto*(-1))
+                ]
+            );
+
+            if (valor) {
+                await db.run(
+                    "UPDATE productos SET cantidad = cantidad + ? WHERE producto = ?",
+                    [inputCantidad, inputProducto]
+                );
             }
-        )
-        const datos = await respuesta.json();
-        
-        if (datos.estado === "ok") {
-            overlay.classList.add("oculto")
-        } 
-    }
-    else {
+
+            overlay.classList.add("oculto");
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+
+    } else {
+
         const mensaje = document.createElement("p");
-        mensaje.classList.add("info")
+        mensaje.classList.add("info");
         mensaje.textContent = "No se permiten campos vacios";
-        contenedor.appendChild(mensaje)
-            setTimeout(() => {
-                mensaje.textContent = "";
-                mensaje.style.display = "none";
-            }, 2000)
+        contenedor.appendChild(mensaje);
+
+        setTimeout(() => {
+            mensaje.textContent = "";
+            mensaje.style.display = "none";
+        }, 2000);
+
     }
+
 }
 
 async function nuevoMovimiento(atributos, tabla, titulo) {
@@ -724,73 +865,87 @@ async function nuevoMovimiento(atributos, tabla, titulo) {
     btnConfirmar.classList.add("btnAgregar")
     btnConfirmar.textContent = "Confirmar"
     contenedor.appendChild(btnConfirmar)
-    btnConfirmar.addEventListener("click", function (){
+    btnConfirmar.addEventListener("click", async function (){
         enviarMovimiento(contenedor, seleccionado);
-        recargarTabla(atributos, tabla, titulo)
+        await recargarTabla(atributos, tabla, titulo)
     })
 
 }
 
 async function enviarGasto(contenedor) {
-    const inputCategoria = document.getElementById("categoria").value
-    const inputOtro = document.getElementById("otra").value
-    const inputMonto = document.getElementById("monto").value
 
-    if ((inputCategoria !== "") && inputMonto&& (inputOtro === "")) {
-        const respuesta = await fetch(
-            `${url}/enviarGasto`,
-                {method: "POST",
-                headers: {
-                    "Content-Type" : "application/json"
-                },
-                body: JSON.stringify({
-                    categoria : inputCategoria,
-                    monto : inputMonto,
-                })
-            }  
-        )
-        const datos = await respuesta.json();
+    const inputMonto = Number(document.getElementById("monto").value);
+    const inputOtro = document.getElementById("otra").value;
+    const inputCategoria = document.getElementById("categoria").value;
 
-        if (datos.estado === "ok") {
-            overlay.classList.add("oculto")
+    if (inputMonto && inputCategoria && !inputOtro) {
+
+        try {
+
+            const fecha = obtenerFecha();
+            const hora = obtenerHora();
+
+            await db.run(
+                `INSERT INTO gastos
+                (fecha, hora, categoria, monto)
+                VALUES (?, ?, ?, ?)`,
+                [
+                    fecha,
+                    hora,
+                    inputCategoria,
+                    (inputMonto*(-1))
+                ]
+            );
+
+            overlay.classList.add("oculto");
+
+        } catch (error) {
+
+            console.error(error);
+
         }
-    } else if ((inputCategoria === "") && inputMonto && (inputOtro !== "")) {
-        const respuesta = await fetch(
-            `${url}/enviarGasto`,
-                {method: "POST",
-                headers: {
-                    "Content-Type" : "application/json"
-                },
-                body: JSON.stringify({
-                    categoria : inputOtro,
-                    monto : inputMonto,
-                })
-            }  
-        )
-        const datos = await respuesta.json();
 
-        if (datos.estado === "ok") {
-            overlay.classList.add("oculto")
+    } else if (inputMonto && !inputCategoria && inputOtro) {
+
+        try {
+
+            const fecha = obtenerFecha();
+            const hora = obtenerHora();
+
+            await db.run(
+                `INSERT INTO gastos
+                (fecha, hora, categoria, monto)
+                VALUES (?, ?, ?, ?)`,
+                [
+                    fecha,
+                    hora,
+                    inputOtro,
+                    (inputMonto*(-1))
+                ]
+            );
+
+            overlay.classList.add("oculto");
+
+        } catch (error) {
+
+            console.error(error);
+
         }
-    } else if ((inputCategoria !== "") && (inputOtro !== "")){
+
+    } else {
+
         const mensaje = document.createElement("p");
-        mensaje.classList.add("info")
-        mensaje.textContent = "Una categoria a la vez";
-        contenedor.appendChild(mensaje)
-            setTimeout(() => {
-                mensaje.textContent = "";
-                mensaje.style.display = "none";
-            }, 2000)
-    }  else {
-        const mensaje = document.createElement("p");
-        mensaje.classList.add("info")
+        mensaje.classList.add("info");
         mensaje.textContent = "No se permiten campos vacios";
-        contenedor.appendChild(mensaje)
-            setTimeout(() => {
-                mensaje.textContent = "";
-                mensaje.style.display = "none";
-            }, 2000)
+        contenedor.appendChild(mensaje);
+
+        setTimeout(() => {
+            mensaje.textContent = "";
+            mensaje.style.display = "none";
+        }, 2000);
+
     }
+
 }
 
 async function nuevoGasto(atributos, tabla, titulo) {
@@ -853,60 +1008,56 @@ async function nuevoGasto(atributos, tabla, titulo) {
     btnConfirmar.classList.add("btnAgregar")
     btnConfirmar.textContent = "Confirmar"
     contenedor.appendChild(btnConfirmar)
-    btnConfirmar.addEventListener("click", function (){
+    btnConfirmar.addEventListener("click", async function (){
         enviarGasto(contenedor)
-        recargarTabla(atributos, tabla, titulo)
+        await recargarTabla(atributos, tabla, titulo)
     })
 
 }
 
 async function enviarDistribuidor(contenedor) {
-    const inputDistribuidor = document.getElementById("distribuidor").value
-    const inputDireccion = document.getElementById("dirección").value
-    const inputPagina = document.getElementById("página").value
+
+    const inputDistribuidor = document.getElementById("distribuidor").value;
+    const inputDireccion = document.getElementById("direccion").value;
+    const inputPagina = document.getElementById("pagina").value;
 
     if (inputDistribuidor && inputDireccion) {
 
-        const respuesta = await fetch(
-            `${url}/enviarDistribuidor`,
-                {method: "POST",
-                headers: {
-                    "Content-Type" : "application/json"
-                },
-                body: JSON.stringify({
-                    distribuidor : inputDistribuidor,
-                    direccion : inputDireccion,
-                    pagina : inputPagina
-                })
-            }  
-        )
-        const datos = await respuesta.json();
-        
-        if (datos.estado === "ok") {
-            overlay.classList.add("oculto")
-        } else {
-            const mensaje = document.createElement("p");
-            mensaje.classList.add("info")
-            mensaje.textContent = "Ya registrado";
-            contenedor.appendChild(mensaje)
-            inputDistribuidor.value = "";
-            inputDireccion.value ="";
-            inputPagina.value="";
-            setTimeout(() => {
-                mensaje.textContent = "";
-                mensaje.style.display = "none";
-            }, 2000)
+        try {
+
+            await db.run(
+                `INSERT INTO distribuidores
+                (distribuidor, direccion, pagina)
+                VALUES (?, ?, ?)`,
+                [
+                    inputDistribuidor,
+                    inputDireccion,
+                    inputPagina
+                ]
+            );
+
+            overlay.classList.add("oculto");
+
+        } catch (error) {
+
+            console.error(error);
+
         }
+
     } else {
+
         const mensaje = document.createElement("p");
-        mensaje.classList.add("info")
+        mensaje.classList.add("info");
         mensaje.textContent = "No se permiten campos vacios";
-        contenedor.appendChild(mensaje)
-            setTimeout(() => {
-                mensaje.textContent = "";
-                mensaje.style.display = "none";
-            }, 2000)
+        contenedor.appendChild(mensaje);
+
+        setTimeout(() => {
+            mensaje.textContent = "";
+            mensaje.style.display = "none";
+        }, 2000);
+
     }
+
 }
 
 function nuevoDistribuidor(atributos, tabla, titulo) {
@@ -922,11 +1073,11 @@ function nuevoDistribuidor(atributos, tabla, titulo) {
             tipo: "text",
             placeholder : "Nombre del distribuidor..."
             },
-            {id: "dirección",
+            {id: "direccion",
             tipo: "text",
             placeholder : "Dirección del distribuidor..."
             },
-            {id: "página",
+            {id: "pagina",
             tipo: "text",
             placeholder : "Página web del distribuidor..."
             }
@@ -940,12 +1091,13 @@ function nuevoDistribuidor(atributos, tabla, titulo) {
     btnConfirmar.classList.add("btnAgregar")
     btnConfirmar.textContent = "Confirmar"
     contenedor.appendChild(btnConfirmar)
-    btnConfirmar.addEventListener("click", function (){
+    btnConfirmar.addEventListener("click", async function (){
         enviarDistribuidor(contenedor);
-        recargarTabla(atributos, tabla, titulo)
+        await recargarTabla(atributos, tabla, titulo)
     })
 
 }
+
 
 function nuevoGraficos(atributos, tabla, titulo) {
     //solo un placeholder para tener algo.
