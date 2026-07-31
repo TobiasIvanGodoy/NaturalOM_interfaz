@@ -9,8 +9,6 @@ let db;
 
 async function iniciarDB() {
 
-    await sqlite.copyFromAssets();
-    
     db = await sqlite.createConnection(
         "naturalOM",
         false,

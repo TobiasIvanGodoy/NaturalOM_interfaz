@@ -15,7 +15,7 @@ html {
     box-sizing: border-box;
 
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    font-size: clamp(28px, 3vh, 50px);
+    font-size: clamp(11px, 3vh, 50px);
 }
 
 body {
