@@ -3,6 +3,7 @@ Todo el tema de graficos y dataScience
 modularizar.(siempre se puede modularizar más)
 `
 
+import Chart from "chart.js/auto";
 import { CapacitorSQLite, SQLiteConnection } from "@capacitor-community/sqlite";
 const sqlite = new SQLiteConnection(CapacitorSQLite);
 let db;
@@ -166,7 +167,7 @@ const botonesAgregados = [
     {
         boton: btnStats,
 
-        agregar: "En construcción",
+        agregar: "Seleccionar gráfico",
 
         id: "tablaEstadisticas",
 
@@ -457,6 +458,7 @@ function construirBtn(tipo, producto, imagen, placeholder, atributo) {
             } else {
                 operar("producto", producto, "productos", cant, seleccionado);
             }
+
             await recargarTabla(botonesAgregados[0].atributos, document.getElementById("tablaProductos"), "productos")
         })
     })
@@ -929,6 +931,17 @@ async function enviarGasto(contenedor) {
             console.error(error);
 
         }
+    }  else if (inputCategoria && inputOtro){
+
+        const mensaje = document.createElement("p");
+        mensaje.classList.add("info");
+        mensaje.textContent = "Una categoría a la vez";
+        contenedor.appendChild(mensaje);
+
+        setTimeout(() => {
+            mensaje.textContent = "";
+            mensaje.style.display = "none";
+        }, 2000);
 
     } else {
 
@@ -1096,13 +1109,936 @@ function nuevoDistribuidor(atributos, tabla, titulo) {
 
 }
 
+async function nuevoGraficos(atributos, tabla, titulo) {
 
-function nuevoGraficos(atributos, tabla, titulo) {
-    //solo un placeholder para tener algo.
     const contenedor = document.createElement("div");
     contenedor.classList.add("contenedorMenu");
     overlay.appendChild(contenedor);
     
     crearBtnCerrar(contenedor);
 
+    const botones = [
+        [ventas7dias, "Ventas - últimos 7 días"],
+        [ventas5semanas, "Ventas - últimas 5 semanas"],
+        [ventas12meses, "Ventas - últimos 12 meses"],
+        [prodMasVendido, "Información de stock"],
+        [gastosCat, "Gastos por categoría"],
+        [gastosHistorial, "Historial de gastos"]
+    ];
+
+    for (const boton of botones) {
+        crearGrafico(boton[0], boton[1], contenedor);
+    }
+    
+}
+
+async function crearGrafico(funcion, nombre, contenedor) {
+
+    const boton = document.createElement("button");
+
+    boton.textContent = nombre;
+    boton.classList.add("btnAgregar");
+
+    boton.addEventListener("click", async function() {
+        overlay.classList.add("oculto");
+        funcion();
+    });
+
+    contenedor.append(boton);
+}
+
+async function ventas7dias() {
+    const tabla = document.getElementById("tablaEstadisticas");
+    tabla.innerHTML = "";
+
+    const canvas = document.createElement("canvas");
+    canvas.style.width = "100%";
+    canvas.style.maxHeight = "70vh";
+    tabla.appendChild(canvas);
+
+    const ctx = canvas.getContext("2d");
+
+    const resultado = await db.query(`
+        SELECT fecha, SUM(monto) AS total
+        FROM movimientos
+        WHERE categoria = 'venta'
+        GROUP BY fecha
+    `);
+
+    const datos = {};
+
+    for (const registro of resultado.values) {
+        datos[registro.fecha] = Number(registro.total);
+    }
+
+    const fechas = [];
+
+    for (let i = 6; i >= 0; i--) {
+        const fecha = new Date();
+
+        fecha.setDate(fecha.getDate() - i);
+
+        const dia = String(fecha.getDate()).padStart(2, "0");
+        const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+        const anio = String(fecha.getFullYear()).slice(-2);
+
+        const fechaTexto = `${dia}-${mes}-${anio}`;
+
+        fechas.push({
+            fecha: fechaTexto,
+            etiqueta: `${dia}/${mes}`
+        });
+    }
+
+    new Chart(ctx, {
+        type: "line",
+
+        data: {
+            labels: fechas.map(x => x.etiqueta),
+
+            datasets: [{
+                label: "Ventas",
+                data: fechas.map(x => datos[x.fecha] || 0),
+                tension: 0.3
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+
+            plugins: {
+                title: {
+                    display: true,
+                    text: "Ventas - últimos 7 días"
+                }
+            }
+        }
+    });
+
+
+    const ventas = await db.query(`
+        SELECT fecha, hora, producto, cantidad, monto
+        FROM movimientos
+        WHERE categoria = 'venta'
+    `);
+
+    const fechasPeriodo = fechas.map(x => x.fecha);
+
+    const mejoresVentas = ventas.values
+        .filter(venta => fechasPeriodo.includes(venta.fecha))
+        .sort((a, b) => Number(b.monto) - Number(a.monto))
+        .slice(0, 10);
+
+
+    const miniTabla = document.createElement("table");
+
+    const encabezado = document.createElement("tr");
+
+    const thFecha = document.createElement("th");
+    thFecha.textContent = "Fecha";
+
+    const thProducto = document.createElement("th");
+    thProducto.textContent = "Producto";
+
+    const thCantidad = document.createElement("th");
+    thCantidad.textContent = "Cantidad";
+
+    const thMonto = document.createElement("th");
+    thMonto.textContent = "Monto";
+
+    encabezado.append(thFecha, thProducto, thCantidad, thMonto);
+    miniTabla.appendChild(encabezado);
+
+    for (const venta of mejoresVentas) {
+        const fila = document.createElement("tr");
+
+        const fecha = document.createElement("td");
+        fecha.textContent = venta.fecha;
+
+        const producto = document.createElement("td");
+        producto.textContent = venta.producto;
+
+        const cantidad = document.createElement("td");
+        cantidad.textContent = venta.cantidad;
+
+        const monto = document.createElement("td");
+        monto.textContent = venta.monto;
+
+        fila.append(fecha, producto, cantidad, monto);
+        miniTabla.appendChild(fila);
+    }
+
+    tabla.appendChild(miniTabla);
+}
+
+async function ventas5semanas() {
+    const tabla = document.getElementById("tablaEstadisticas");
+    tabla.innerHTML = "";
+
+    const canvas = document.createElement("canvas");
+    canvas.style.width = "100%";
+    canvas.style.maxHeight = "70vh";
+    tabla.appendChild(canvas);
+
+    const ctx = canvas.getContext("2d");
+
+    const resultado = await db.query(`
+        SELECT fecha, SUM(monto) AS total
+        FROM movimientos
+        WHERE categoria = 'venta'
+        GROUP BY fecha
+    `);
+
+    const semanas = [];
+
+    for (let i = 4; i >= 0; i--) {
+        const inicio = new Date();
+        inicio.setDate(inicio.getDate() - (i + 1) * 7 + 1);
+
+        const fin = new Date();
+        fin.setDate(fin.getDate() - i * 7);
+
+        semanas.push({
+            inicio: inicio,
+            fin: fin,
+            total: 0
+        });
+    }
+
+    for (const registro of resultado.values) {
+        const partes = registro.fecha.split("-");
+
+        const fecha = new Date(
+            2000 + Number(partes[2]),
+            Number(partes[1]) - 1,
+            Number(partes[0])
+        );
+
+        for (const semana of semanas) {
+            if (fecha >= semana.inicio && fecha <= semana.fin) {
+                semana.total += Number(registro.total);
+                break;
+            }
+        }
+    }
+
+    new Chart(ctx, {
+        type: "line",
+
+        data: {
+            labels: semanas.map((semana, indice) => `Semana ${indice + 1}`),
+
+            datasets: [{
+                label: "Ventas",
+                data: semanas.map(semana => semana.total),
+                tension: 0.3
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+
+            plugins: {
+                title: {
+                    display: true,
+                    text: "Ventas - últimas 5 semanas"
+                }
+            }
+        }
+    });
+
+    const ventas = await db.query(`
+    SELECT fecha, hora, producto, cantidad, monto
+    FROM movimientos
+    WHERE categoria = 'venta'
+    `);
+
+    const mejoresVentas = ventas.values
+        .filter(venta => {
+            const partes = venta.fecha.split("-");
+
+            const fechaVenta = new Date(
+                2000 + Number(partes[2]),
+                Number(partes[1]) - 1,
+                Number(partes[0])
+            );
+
+            return semanas.some(semana =>
+                fechaVenta >= semana.inicio &&
+                fechaVenta <= semana.fin
+            );
+        })
+        .sort((a, b) => Number(b.monto) - Number(a.monto))
+        .slice(0, 10);
+
+    const miniTabla = document.createElement("table");
+
+    const encabezado = document.createElement("tr");
+
+    const thFecha = document.createElement("th");
+    thFecha.textContent = "Fecha";
+
+    const thProducto = document.createElement("th");
+    thProducto.textContent = "Producto";
+
+    const thCantidad = document.createElement("th");
+    thCantidad.textContent = "Cantidad";
+
+    const thMonto = document.createElement("th");
+    thMonto.textContent = "Monto";
+
+    encabezado.append(thFecha, thProducto, thCantidad, thMonto);
+    miniTabla.appendChild(encabezado);
+
+    for (const venta of mejoresVentas) {
+        const fila = document.createElement("tr");
+
+        const fecha = document.createElement("td");
+        fecha.textContent = venta.fecha;
+
+        const producto = document.createElement("td");
+        producto.textContent = venta.producto;
+
+        const cantidad = document.createElement("td");
+        cantidad.textContent = venta.cantidad;
+
+        const monto = document.createElement("td");
+        monto.textContent = venta.monto;
+
+        fila.append(fecha, producto, cantidad, monto);
+        miniTabla.appendChild(fila);
+    }
+
+    tabla.appendChild(miniTabla);
+    
+}
+
+async function ventas12meses() {
+    const tabla = document.getElementById("tablaEstadisticas");
+    tabla.innerHTML = "";
+
+    const canvas = document.createElement("canvas");
+    canvas.style.width = "100%";
+    canvas.style.maxHeight = "70vh";
+    tabla.appendChild(canvas);
+
+    const ctx = canvas.getContext("2d");
+
+    const resultado = await db.query(`
+        SELECT fecha, SUM(monto) AS total
+        FROM movimientos
+        WHERE categoria = 'venta'
+        GROUP BY fecha
+    `);
+
+    const meses = [];
+
+    for (let i = 11; i >= 0; i--) {
+        const fecha = new Date();
+
+        fecha.setDate(1);
+        fecha.setMonth(fecha.getMonth() - i);
+
+        meses.push({
+            anio: fecha.getFullYear(),
+            mes: fecha.getMonth(),
+            total: 0,
+            etiqueta: `${String(fecha.getMonth() + 1).padStart(2, "0")}/${String(fecha.getFullYear()).slice(-2)}`
+        });
+    }
+
+    for (const registro of resultado.values) {
+        const partes = registro.fecha.split("-");
+
+        const fecha = new Date(
+            2000 + Number(partes[2]),
+            Number(partes[1]) - 1,
+            Number(partes[0])
+        );
+
+        for (const mes of meses) {
+            if (
+                fecha.getFullYear() === mes.anio &&
+                fecha.getMonth() === mes.mes
+            ) {
+                mes.total += Number(registro.total);
+                break;
+            }
+        }
+    }
+
+    new Chart(ctx, {
+        type: "line",
+
+        data: {
+            labels: meses.map(mes => mes.etiqueta),
+
+            datasets: [{
+                label: "Ventas",
+                data: meses.map(mes => mes.total),
+                tension: 0.3
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+
+            plugins: {
+                title: {
+                    display: true,
+                    text: "Ventas - últimos 12 meses"
+                }
+            }
+        }
+    });
+
+    const ventas = await db.query(`
+    SELECT fecha, hora, producto, cantidad, monto
+    FROM movimientos
+    WHERE categoria = 'venta'
+`);
+
+    const mejoresVentas = ventas.values
+        .filter(venta => {
+            const partes = venta.fecha.split("-");
+
+            const fechaVenta = new Date(
+                2000 + Number(partes[2]),
+                Number(partes[1]) - 1,
+                Number(partes[0])
+            );
+
+            return meses.some(mes =>
+                fechaVenta.getFullYear() === mes.anio &&
+                fechaVenta.getMonth() === mes.mes
+            );
+        })
+        .sort((a, b) => Number(b.monto) - Number(a.monto))
+        .slice(0, 10);
+
+    const miniTabla = document.createElement("table");
+
+    const encabezado = document.createElement("tr");
+
+    const thFecha = document.createElement("th");
+    thFecha.textContent = "Fecha";
+
+    const thProducto = document.createElement("th");
+    thProducto.textContent = "Producto";
+
+    const thCantidad = document.createElement("th");
+    thCantidad.textContent = "Cantidad";
+
+    const thMonto = document.createElement("th");
+    thMonto.textContent = "Monto";
+
+    encabezado.append(thFecha, thProducto, thCantidad, thMonto);
+    miniTabla.appendChild(encabezado);
+
+    for (const venta of mejoresVentas) {
+        const fila = document.createElement("tr");
+
+        const fecha = document.createElement("td");
+        fecha.textContent = venta.fecha;
+
+        const producto = document.createElement("td");
+        producto.textContent = venta.producto;
+
+        const cantidad = document.createElement("td");
+        cantidad.textContent = venta.cantidad;
+
+        const monto = document.createElement("td");
+        monto.textContent = venta.monto;
+
+        fila.append(fecha, producto, cantidad, monto);
+        miniTabla.appendChild(fila);
+    }
+
+    tabla.appendChild(miniTabla);
+
+}
+
+async function prodMasVendido() {
+    const tabla = document.getElementById("tablaEstadisticas");
+    tabla.innerHTML = "";
+
+    const canvas = document.createElement("canvas");
+    canvas.style.width = "100%";
+    canvas.style.maxHeight = "70vh";
+    tabla.appendChild(canvas);
+
+    const ctx = canvas.getContext("2d");
+
+    const resultado = await db.query(`
+        SELECT producto, SUM(cantidad) AS total
+        FROM movimientos
+        WHERE categoria = 'venta'
+        GROUP BY producto
+        ORDER BY total DESC
+        LIMIT 5
+    `);
+
+    const colores = [
+        "#FF6384",
+        "#36A2EB",
+        "#FFCE56",
+        "#4BC0C0",
+        "#9966FF"
+    ];
+
+    const mostrarValores = {
+        id: "mostrarValores",
+
+        afterDatasetsDraw(grafico) {
+            const ctx = grafico.ctx;
+
+            ctx.save();
+
+            grafico.data.datasets.forEach((dataset, indiceDataset) => {
+                const meta = grafico.getDatasetMeta(indiceDataset);
+
+                meta.data.forEach((barra, indice) => {
+                    const valor = dataset.data[indice];
+
+                    ctx.fillStyle = "#000";
+                    ctx.font = "bold 14px Arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "bottom";
+
+                    ctx.fillText(
+                        valor,
+                        barra.x,
+                        barra.y - 5
+                    );
+                });
+            });
+
+            ctx.restore();
+        }
+    };
+
+    new Chart(ctx, {
+        type: "bar",
+
+        data: {
+            labels: resultado.values.map(registro => registro.producto),
+
+            datasets: [{
+                label: "Cantidad vendida",
+
+                data: resultado.values.map(
+                    registro => Number(registro.total)
+                ),
+
+                backgroundColor: resultado.values.map(
+                    (_, indice) => colores[indice]
+                )
+            }]
+        },
+
+        options: {
+            responsive: true,
+
+            plugins: {
+                legend: {
+                    display: false
+                },
+
+                title: {
+                    display: true,
+                    text: "Productos más vendidos"
+                }
+            },
+
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        },
+
+        plugins: [mostrarValores]
+    });
+
+    const texto = document.createElement("p");
+
+    texto.textContent = `productos con poco stock`;
+
+    texto.style.backgroundColor = "lightcyan";
+    texto.style.borderRadius = "2vh";
+    texto.style.textAlign = "center";
+    texto.style.paddingTop = "2vh";
+    texto.style.paddingBottom = "2vh";
+    tabla.appendChild(texto);
+
+    const stock = await db.query(`
+        SELECT producto, cantidad
+        FROM productos
+        WHERE cantidad <= 5
+        ORDER BY cantidad ASC
+    `);
+
+    const lista = document.createElement("table");
+
+    const encabezado = document.createElement("tr");
+
+    const thProducto = document.createElement("th");
+    thProducto.textContent = "Producto";
+
+    const thStock = document.createElement("th");
+    thStock.textContent = "Stock";
+
+    encabezado.append(thProducto, thStock);
+    lista.appendChild(encabezado);
+
+    for (const producto of stock.values) {
+        const fila = document.createElement("tr");
+
+        const nombre = document.createElement("td");
+        nombre.textContent = producto.producto;
+
+        const cantidad = document.createElement("td");
+        cantidad.textContent = producto.cantidad;
+
+        fila.append(nombre, cantidad);
+        lista.appendChild(fila);
+    }
+
+    tabla.appendChild(lista);
+
+    valorTotalStock()
+}
+
+async function valorTotalStock() {
+    const tabla = document.getElementById("tablaEstadisticas");
+
+    const canvas = document.createElement("canvas");
+    canvas.style.width = "100%";
+    canvas.style.maxHeight = "70vh";
+    tabla.appendChild(canvas);
+
+    const ctx = canvas.getContext("2d");
+
+    const resultado = await db.query(`
+        SELECT producto, precio, cantidad
+        FROM productos
+        ORDER BY (precio * cantidad) DESC
+    `);
+
+    const valores = resultado.values.map(
+        registro => Number(registro.precio) * Number(registro.cantidad)
+    );
+
+    const valorTotal = valores.reduce(
+        (total, valor) => total + valor,
+        0
+    );
+
+    const colores = [
+        "#FF6384",
+        "#36A2EB",
+        "#FFCE56",
+        "#4BC0C0",
+        "#9966FF",
+        "#FF9F40",
+        "#C9CBCF",
+        "#8AC926",
+        "#1982C4",
+        "#6A4C93"
+    ];
+
+    new Chart(ctx, {
+        type: "pie",
+
+        data: {
+            labels: resultado.values.map(
+                registro => registro.producto
+            ),
+
+            datasets: [{
+                data: valores,
+
+                backgroundColor: resultado.values.map(
+                    (_, indice) => colores[indice % colores.length]
+                )
+            }]
+        },
+
+        options: {
+            responsive: true,
+
+            plugins: {
+                title: {
+                    display: true,
+                    text: "Valor actual del stock por producto"
+                }
+            }
+        }
+    });
+
+    const textoTotal = document.createElement("p");
+
+    textoTotal.textContent = `Valor total: $${valorTotal.toLocaleString("es-AR")}`;
+
+    textoTotal.style.backgroundColor = "lightcyan";
+    textoTotal.style.borderRadius = "2vh";
+    textoTotal.style.textAlign = "center";
+    textoTotal.style.paddingTop = "2vh";
+    textoTotal.style.paddingBottom = "2vh";
+    tabla.appendChild(textoTotal);
+}
+
+async function gastosCat() {
+    const tabla = document.getElementById("tablaEstadisticas");
+    tabla.innerHTML = "";
+
+    const canvas = document.createElement("canvas");
+    canvas.style.width = "100%";
+    canvas.style.maxHeight = "70vh";
+    tabla.appendChild(canvas);
+
+    const ctx = canvas.getContext("2d");
+
+    const resultado = await db.query(`
+        SELECT fecha, categoria, monto
+        FROM gastos
+    `);
+
+    const resultadoReponer = await db.query(`
+        SELECT fecha, categoria, monto
+        FROM movimientos
+        WHERE categoria = 'reponer'
+    `);
+
+    const fechaActual = new Date();
+    fechaActual.setHours(0, 0, 0, 0);
+
+    const fechaInicio = new Date(fechaActual);
+    fechaInicio.setDate(fechaInicio.getDate() - 29);
+
+    const gastosPeriodo = resultado.values.filter(gasto => {
+        const partes = gasto.fecha.split("-");
+
+        const fechaGasto = new Date(
+            2000 + Number(partes[2]),
+            Number(partes[1]) - 1,
+            Number(partes[0])
+        );
+
+        fechaGasto.setHours(0, 0, 0, 0);
+
+        return fechaGasto >= fechaInicio && fechaGasto <= fechaActual;
+    });
+
+    const reponerPeriodo = resultadoReponer.values.filter(gasto => {
+        const partes = gasto.fecha.split("-");
+
+        const fechaGasto = new Date(
+            2000 + Number(partes[2]),
+            Number(partes[1]) - 1,
+            Number(partes[0])
+        );
+
+        fechaGasto.setHours(0, 0, 0, 0);
+
+        return fechaGasto >= fechaInicio && fechaGasto <= fechaActual;
+    });
+
+    const categorias = {};
+
+    for (const gasto of gastosPeriodo) {
+        if (!categorias[gasto.categoria]) {
+            categorias[gasto.categoria] = 0;
+        }
+
+        categorias[gasto.categoria] += Math.abs(Number(gasto.monto));
+    }
+
+    for (const gasto of reponerPeriodo) {
+        if (!categorias[gasto.categoria]) {
+            categorias[gasto.categoria] = 0;
+        }
+
+        categorias[gasto.categoria] += Math.abs(Number(gasto.monto));
+    }
+
+    const nombresCategorias = Object.keys(categorias);
+
+    const valoresCategorias = nombresCategorias.map(
+        categoria => categorias[categoria]
+    );
+
+    const colores = [
+        "#FF6384",
+        "#36A2EB",
+        "#FFCE56",
+        "#4BC0C0",
+        "#9966FF",
+        "#FF9F40",
+        "#C9CBCF",
+        "#8AC926",
+        "#1982C4",
+        "#6A4C93"
+    ];
+
+    new Chart(ctx, {
+        type: "pie",
+
+        data: {
+            labels: nombresCategorias,
+
+            datasets: [{
+                data: valoresCategorias,
+
+                backgroundColor: nombresCategorias.map(
+                    (_, indice) => colores[indice % colores.length]
+                )
+            }]
+        },
+
+        options: {
+            responsive: true,
+
+            plugins: {
+                title: {
+                    display: true,
+                    text: "Gastos por categoría - últimos 30 días"
+                }
+            }
+        }
+    });
+
+    const miniTabla = document.createElement("table");
+
+    const encabezado = document.createElement("tr");
+
+    const thCategoria = document.createElement("th");
+    thCategoria.textContent = "Categoría";
+
+    const thTotal = document.createElement("th");
+    thTotal.textContent = "Total";
+
+    encabezado.append(thCategoria, thTotal);
+    miniTabla.appendChild(encabezado);
+
+    for (const categoria of nombresCategorias) {
+        const fila = document.createElement("tr");
+
+        const tdCategoria = document.createElement("td");
+        tdCategoria.textContent = categoria;
+
+        const tdTotal = document.createElement("td");
+        tdTotal.textContent =
+            `$${categorias[categoria].toLocaleString("es-AR")}`;
+
+        fila.append(tdCategoria, tdTotal);
+        miniTabla.appendChild(fila);
+    }
+
+    tabla.appendChild(miniTabla);
+}
+
+async function gastosHistorial() {
+    const tabla = document.getElementById("tablaEstadisticas");
+    tabla.innerHTML = "";
+
+    const canvas = document.createElement("canvas");
+    canvas.style.width = "100%";
+    canvas.style.maxHeight = "70vh";
+    tabla.appendChild(canvas);
+
+    const ctx = canvas.getContext("2d");
+
+    const gastos = await db.query(`
+        SELECT fecha, categoria, monto
+        FROM gastos
+    `);
+
+    const reponer = await db.query(`
+        SELECT fecha, categoria, monto
+        FROM movimientos
+        WHERE categoria = 'reponer'
+    `);
+
+    const meses = {};
+
+    for (const registro of gastos.values) {
+        const partes = registro.fecha.split("-");
+        const clave = `${partes[1]}-${partes[2]}`;
+
+        if (!meses[clave]) {
+            meses[clave] = 0;
+        }
+
+        meses[clave] += Math.abs(Number(registro.monto));
+    }
+
+    for (const registro of reponer.values) {
+        const partes = registro.fecha.split("-");
+        const clave = `${partes[1]}-${partes[2]}`;
+
+        if (!meses[clave]) {
+            meses[clave] = 0;
+        }
+
+        meses[clave] += Math.abs(Number(registro.monto));
+    }
+
+    const claves = Object.keys(meses).sort();
+
+    new Chart(ctx, {
+        type: "line",
+
+        data: {
+            labels: claves,
+
+            datasets: [{
+                label: "Gastos",
+                data: claves.map(clave => meses[clave]),
+                tension: 0.3
+            }]
+        },
+
+        options: {
+            responsive: true,
+
+            plugins: {
+                title: {
+                    display: true,
+                    text: "Evolución mensual de gastos"
+                }
+            }
+        }
+    });
+
+    const lista = document.createElement("table");
+
+    const encabezado = document.createElement("tr");
+
+    const thMes = document.createElement("th");
+    thMes.textContent = "Mes";
+
+    const thGasto = document.createElement("th");
+    thGasto.textContent = "Gasto";
+
+    encabezado.append(thMes, thGasto);
+    lista.appendChild(encabezado);
+
+    for (const clave of claves) {
+        const fila = document.createElement("tr");
+
+        const mes = document.createElement("td");
+        mes.textContent = clave;
+
+        const gasto = document.createElement("td");
+        gasto.textContent = `$${meses[clave].toLocaleString("es-AR")}`;
+
+        fila.append(mes, gasto);
+        lista.appendChild(fila);
+    }
+
+    tabla.appendChild(lista);
 }
