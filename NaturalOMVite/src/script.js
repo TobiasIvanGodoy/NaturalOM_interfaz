@@ -4,6 +4,7 @@ modularizar.(siempre se puede modularizar más)
 `
 
 import Chart from "chart.js/auto";
+import { Preferences } from "@capacitor/preferences";
 import { CapacitorSQLite, SQLiteConnection } from "@capacitor-community/sqlite";
 const sqlite = new SQLiteConnection(CapacitorSQLite);
 let db;
@@ -74,6 +75,19 @@ const seccionActual = document.getElementById("seccionActual");
 const saldo = document.getElementById("saldo");
 saldo.style.fontSize = "2vh";
 const overlay = document.getElementById("overlay");
+const sumarSaldo = document.getElementById("sumarSaldo")
+
+let saldoInicial = 690091;
+
+async function cargarSaldoInicial() {
+    const resultado = await Preferences.get({ key: "saldoInicial" });
+
+    if (resultado.value !== null) {
+        saldoInicial = Number(resultado.value);
+    }
+}
+
+await cargarSaldoInicial();
 
 async function mostrarbalance() {
     const saldo = document.getElementById("saldo");
@@ -88,12 +102,48 @@ async function mostrarbalance() {
 
     const balance =
         Number(movimientos.values[0].total) +
-        Number(gastos.values[0].total);
+        Number(gastos.values[0].total) + saldoInicial;
 
     saldo.textContent = `$${balance}`;
 }
 
 mostrarbalance()
+
+sumarSaldo.addEventListener("click", function() {
+    overlay.classList.remove("oculto")
+    overlay.innerHTML = "";
+    const contenedor = document.createElement("div");
+    contenedor.classList.add("contenedorMenu");
+    overlay.appendChild(contenedor);
+    
+    crearBtnCerrar(contenedor);
+    
+    crearCampo({id:"inicial", 
+                tipo: "number", 
+                placeholder: `saldo inicial actual = ${saldoInicial}`}, 
+                contenedor)
+
+    const btnConfirmar = document.createElement("button");
+    btnConfirmar.classList.add("btnAgregar")
+    btnConfirmar.textContent = "Confirmar"
+    contenedor.appendChild(btnConfirmar)
+
+    btnConfirmar.addEventListener("click", async function () {
+        overlay.classList.add("oculto");
+
+        const nuevoSaldo = Number(document.getElementById("inicial").value);
+
+        saldoInicial = nuevoSaldo;
+
+        await Preferences.set({
+            key: "saldoInicial",
+            value: String(saldoInicial)
+        });
+
+        mostrarbalance();
+    });
+    
+})
 
 const gastosJunio = `INSERT INTO gastos (fecha, hora, categoria, monto) VALUES
     ('02-06-26', '10:14', 'snack', -1200),

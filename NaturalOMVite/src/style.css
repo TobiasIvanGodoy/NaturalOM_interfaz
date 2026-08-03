@@ -95,6 +95,14 @@ body {
 /* ==========================================================================
    BOTONES
    ========================================================================== */
+.saldo {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+}
 
 button {
     display: flex;
@@ -128,6 +136,19 @@ button:hover {
 }
 
 #btnCerrar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; 
+}
+
+#sumarSaldo {
+    height: 100%;
+    aspect-ratio: 1;
+    border: none;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+#sumarSaldo img {
     width: 100%;
     height: 100%;
     object-fit: contain; 
