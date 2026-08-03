@@ -618,6 +618,7 @@ async function operar(parametro, elem, tabla, cant, valor) {
     }
 
     overlay.classList.add("oculto");
+    mostrarbalance();
 }
 
 async function cambiarPrecio(parametro, elem, tabla, precioNuevo) {
