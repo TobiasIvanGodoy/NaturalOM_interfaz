@@ -95,6 +95,25 @@ async function mostrarbalance() {
 
 mostrarbalance()
 
+const gastosJunio = `INSERT INTO gastos (fecha, hora, categoria, monto) VALUES
+    ('02-06-26', '10:14', 'snack', -1200),
+    ('04-06-26', '18:32', 'uber', -4800),
+    ('07-06-26', '13:47', 'snack', -1800),
+    ('10-06-26', '09:21', 'compras', -6500),
+    ('13-06-26', '17:05', 'uber', -5200),
+    ('16-06-26', '12:38', 'snack', -1500),
+    ('19-06-26', '20:11', 'uber', -4300),
+    ('22-06-26', '14:26', 'compras', -7200),
+    ('25-06-26', '11:53', 'snack', -2100),
+    ('28-06-26', '18:44', 'uber', -5100);`;
+
+async function inflarNumeros(stats) {
+    await db.execute(stats)
+}
+
+//inflarNumeros(gastosJunio)
+
+
 // configuraciones 
 const botonesAgregados = [
 
@@ -231,6 +250,12 @@ for (const configuracion of botonesAgregados) {
         })
 
         seccionActual.appendChild(boton);
+
+        if (configuracion.boton == btnStats) {
+            overlay.innerHTML = "";
+            overlay.classList.remove("oculto");
+            configuracion.modificarOverlay(configuracion.atributos, tabla, configuracion.titulo);
+        }
     })
 }
 
@@ -244,14 +269,23 @@ async function recargarTabla(atributos, tabla, titulo) {
     }
 
     const ordenes = {
-        productos: ["producto", "ASC"],
-        movimientos: ["fecha", "DESC"],
-        gastos: ["fecha", "DESC"],
-        distribuidores: ["distribuidor", "ASC"]
+        productos: "producto ASC",
+        movimientos: `
+            substr(fecha, 7, 2) DESC,
+            substr(fecha, 4, 2) DESC,
+            substr(fecha, 1, 2) DESC,
+            hora DESC
+        `,
+        gastos: `
+            substr(fecha, 7, 2) DESC,
+            substr(fecha, 4, 2) DESC,
+            substr(fecha, 1, 2) DESC
+        `,
+        distribuidores: "distribuidor ASC"
     };
 
     const datos = await db.query(
-        `SELECT * FROM ${titulo} ORDER BY ${ordenes[titulo][0]} ${ordenes[titulo][1]}`
+        `SELECT * FROM ${titulo} ORDER BY ${ordenes[titulo]}`
     );
 
     console.log("Registros recibidos:", datos.values);
@@ -574,7 +608,7 @@ async function eliminarElem(parametro, elem, tabla) {
 async function buscarOpciones(tabla, atributo) {
 
     const resultado = await db.query(
-        `SELECT ${atributo} FROM ${tabla} ORDER BY ${atributo} ASC`
+        `SELECT DISTINCT ${atributo} FROM ${tabla} ORDER BY ${atributo} ASC`
     );
 
     return resultado.values.map(registro => registro[atributo]);
@@ -1118,9 +1152,7 @@ async function nuevoGraficos(atributos, tabla, titulo) {
     crearBtnCerrar(contenedor);
 
     const botones = [
-        [ventas7dias, "Ventas - últimos 7 días"],
-        [ventas5semanas, "Ventas - últimas 5 semanas"],
-        [ventas12meses, "Ventas - últimos 12 meses"],
+        [ventas7dias, "Ventas"],
         [prodMasVendido, "Información de stock"],
         [gastosCat, "Gastos por categoría"],
         [gastosHistorial, "Historial de gastos"]
@@ -1146,10 +1178,38 @@ async function crearGrafico(funcion, nombre, contenedor) {
 
     contenedor.append(boton);
 }
+async function panelVentas() {
+    const contenedor = document.createElement("div");
+    contenedor.classList.add("contenedorMenu");
+    overlay.appendChild(contenedor);
+    
+    crearBtnCerrar(contenedor);
+    
+    const botones = [
+        [ventas7dias, "últimos 7 días"],
+        [ventas5semanas, "últimas 5 semanas"],
+        [ventas12meses, "últimos 12 meses"],
+    ];
+
+    for (const boton of botones) {
+        crearGrafico(boton[0], boton[1], contenedor);
+    }
+}
 
 async function ventas7dias() {
     const tabla = document.getElementById("tablaEstadisticas");
     tabla.innerHTML = "";
+
+    const botonVentas = document.createElement("button")
+    botonVentas.classList.add("btnAgregar")
+    botonVentas.textContent = "Periodo"
+    botonVentas.style.width = "100%"
+    botonVentas.addEventListener("click", function () {
+        overlay.innerHTML = "";
+        overlay.classList.remove("oculto");
+        panelVentas();
+    })
+    tabla.append(botonVentas)
 
     const canvas = document.createElement("canvas");
     canvas.style.width = "100%";
@@ -1276,6 +1336,18 @@ async function ventas5semanas() {
     const tabla = document.getElementById("tablaEstadisticas");
     tabla.innerHTML = "";
 
+    const botonVentas = document.createElement("button")
+    botonVentas.classList.add("btnAgregar")
+    botonVentas.textContent = "Periodo"
+    botonVentas.style.width = "100%"
+    botonVentas.addEventListener("click", function () {
+        overlay.innerHTML = "";
+        overlay.classList.remove("oculto");
+        panelVentas();
+    })
+    tabla.append(botonVentas)
+
+
     const canvas = document.createElement("canvas");
     canvas.style.width = "100%";
     canvas.style.maxHeight = "70vh";
@@ -1327,7 +1399,12 @@ async function ventas5semanas() {
         type: "line",
 
         data: {
-            labels: semanas.map((semana, indice) => `Semana ${indice + 1}`),
+            labels: semanas.map(semana => {
+                const dia = String(semana.inicio.getDate()).padStart(2, "0");
+                const mes = String(semana.inicio.getMonth() + 1).padStart(2, "0");
+
+                return `${dia}/${mes}`;
+            }),
 
             datasets: [{
                 label: "Ventas",
@@ -1350,9 +1427,9 @@ async function ventas5semanas() {
     });
 
     const ventas = await db.query(`
-    SELECT fecha, hora, producto, cantidad, monto
-    FROM movimientos
-    WHERE categoria = 'venta'
+        SELECT fecha, hora, producto, cantidad, monto
+        FROM movimientos
+        WHERE categoria = 'venta'
     `);
 
     const mejoresVentas = ventas.values
@@ -1412,12 +1489,23 @@ async function ventas5semanas() {
     }
 
     tabla.appendChild(miniTabla);
-    
 }
 
 async function ventas12meses() {
     const tabla = document.getElementById("tablaEstadisticas");
     tabla.innerHTML = "";
+
+    const botonVentas = document.createElement("button")
+    botonVentas.classList.add("btnAgregar")
+    botonVentas.textContent = "Periodo"
+    botonVentas.style.width = "100%"
+    botonVentas.addEventListener("click", function () {
+        overlay.innerHTML = "";
+        overlay.classList.remove("oculto");
+        panelVentas();
+    })
+    tabla.append(botonVentas)
+
 
     const canvas = document.createElement("canvas");
     canvas.style.width = "100%";
